@@ -61,6 +61,17 @@ Any LLM/OpenAI/API functionality must be optional and disabled by default.
 
 Any API key must be supplied by the user through an environment variable or explicit config option. Never hard-code keys.
 
+## Notebook-First Development Rules
+
+1. Prefer new implementation work in Jupyter notebooks located in `agent/` whenever practical.
+2. For every notebook, include clear explanations for each code cell so a chemistry expert with limited Python experience can follow what the code is doing.
+3. Use short, plain-language markdown immediately before code cells to explain:
+   - the purpose of the cell,
+   - expected inputs,
+   - expected outputs or side effects.
+4. Keep reusable multi-use helper logic out of notebooks when it becomes shared across notebooks, and place it in a single helper script: `agent/robert_helper.py`.
+5. Avoid creating additional helper modules unless there is a strong reason; default to the single helper script above for shared utilities.
+
 ## Initial Development Target
 
 Build the smallest useful prototype that can answer:

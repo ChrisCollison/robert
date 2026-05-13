@@ -23,3 +23,15 @@ Updated
 - [ ] Add explicit run_context.json schema draft.
 - [ ] Add parsing regex/token rules for PREDICT and VERIFY sections.
 - [ ] Add deterministic diagnostics rubric for score limitations.
+
+## Extractor V1 Approval Gate (Before Coding)
+- [ ] Approve V1 must-have fields in `agent/run_context_schema.md`.
+- [ ] Approve parser behavior contract (null-safe, never crash on missing files/sections).
+- [ ] Approve initial parse priority: PREDICT first, VERIFY second.
+- [ ] Approve three-run test set: regression complete, classification complete, incomplete/missing-file run.
+
+## Immediate Start After Approval
+- [ ] Implement `agent/extract_context.py` for PREDICT-only thin slice.
+- [ ] Extend extractor with VERIFY parsing.
+- [ ] Emit stable `run_context.json` shape with all V1 required keys.
+- [ ] Validate extractor on the three-run test set and log outcomes in `COMPLETED_TASKS.md`.

@@ -19,3 +19,17 @@ Purpose
 - Added agent/REFERENCE_NOTES.md for persistent key findings.
 - Added TODO.md with a proposed-plan section and stepwise task list.
 - Added COMPLETED_TASKS.md for auditable progress tracking.
+
+## 2026-05-13
+
+### Run archiving workflow bootstrap
+- Added `agent/robert_run_wrapper.ipynb` to run ROBERT optionally and archive module outputs per run.
+- Implemented timestamp + dataset-name run folder naming under `agent/run_archive/`.
+- Added output binning for `CURATE/`, `GENERATE/`, `VERIFY/`, and `PREDICT/` to avoid overwrite of generic output folders.
+- Added per-run `run_manifest.json` capture with dataset path, command used, return code, and archived directories.
+- Verified CLI option pattern uses `--csv_name` in ROBERT help text in `robert/utils.py`.
+
+### Wrapper notebook command automation
+- Updated `agent/robert_run_wrapper.ipynb` so `ROBERT_COMMAND` is auto-generated from `DATASET_CSV` plus a single `ROBERT_OPTIONS` dictionary.
+- Added helper conversion of notebook options to CLI flags (`--key value` and bool-flag support).
+- Added command preview print in execution cell to confirm the exact command before run.
