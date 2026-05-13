@@ -131,3 +131,19 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# ROBERT Agent outputs — generated at runtime, never committed
+run_context.json
+agent_report.md
+agent_report.txt
+agent_report.html
+
+# API keys and secrets — never commit
+.env
+*.env
+agent/.env
+agent/config_local.py
+
+# LLM response cache (optional feature, user-local)
+agent/.cache/
+agent/cache/

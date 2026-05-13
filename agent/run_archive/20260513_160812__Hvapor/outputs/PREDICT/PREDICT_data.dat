@@ -1,0 +1,135 @@
+ROBERT v 2.1.0 2026/05/13 16:08:19 
+How to cite: Dalmau, D.; Alegre Requena, J. V. WIREs Comput Mol Sci. 2024, 14, e1733.
+
+Command line used in ROBERT: python -m robert --names "Name" --y "Hvapor" --csv_name "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+
+
+o  Representation of predictions and analysis of ML models with the PREDICT module
+
+
+------- Starting model with all variables (No PFI) -------
+
+o  Database MVL_db.csv loaded successfully, including:
+   - 133 datapoints
+   - 3 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model No_PFI (with no PFI filter) and Xy database were loaded, including:
+   - Target value: Hvapor
+   - Names: Name
+   - Model: MVL
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['Hardness', 'SGBP', 'g3']
+   - Training points: 106
+   - Test points: 27
+   o  Saving CSV databases with predictions and their SD in:
+      -  Predicted results of starting dataset: PREDICT/MVL_No_PFI.csv
+
+   o  Saving graphs in:
+      -  Graph in: PREDICT/Results_MVL_No_PFI.png
+      -  Graph in: PREDICT/CV_variability_MVL_No_PFI.png
+
+   o  Summary of results MVL_No_PFI:
+      -  Points CV (train+valid.):Test = 106:27
+      -  Proportion CV (train+valid.):Test = 80:20
+      -  Number of descriptors = 3
+      -  Proportion (train+valid.) points:descriptors = 106:3
+      -  10x 5-fold CV : R2 = 0.77, MAE = 4.7, RMSE = 5.7
+      -  Test : R2 = 0.78, MAE = 4.7, RMSE = 5.5
+      -  Average SD in test set = 0.51
+      -  y range of dataset (train+valid.) = 7.2e+01 to 1.3e+02, total 5.4e+01
+
+   o  SHAP plot saved in PREDICT/SHAP_MVL_No_PFI.png
+      -  SGBP = min: -1.9e+01, max: 2e+01
+      -  Hardness = min: -7.9, max: 1.2e+01
+      -  g3 = min: -6.3, max: 3.1
+
+   o  PFI plot saved in PREDICT/PFI_MVL_No_PFI.png
+      Influence on RMSE
+      -  SGBP = 7.2 +- 0.74
+      -  Hardness = 1.6 +- 0.11
+      -  g3 = 0.36 +- 0.11
+
+   o  The Pearson heatmap was stored in PREDICT/Pearson_heatmap_No_PFI.png.
+      Ideally, variables should show low correlations.
+      o  Correlations between variables are acceptable
+
+   o  Outliers plot saved in PREDICT/Outliers_MVL_No_PFI.png
+      Train: 4 outliers out of 106 datapoints (3.8%)
+      -  2,2prime,3,5,5prime,6-Hexachlorobiphenyl (2.2 SDs)
+      -  2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl (3.0 SDs)
+      -  2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl (3.1 SDs)
+      -  2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl (2.2 SDs)
+      Test: 0 outliers out of 27 datapoints (0.0%)
+
+   o  y-values distribution plot saved in PREDICT/y_distribution_MVL_No_PFI.png
+      Ideally, the number of datapoints in the four quartiles of the y-range should be uniform (25% population in each quartile) to have similar confidence intervals in the predictions across the y-range
+      -  The number of points in each quartile is Q1: 24, Q2: 55, Q3: 36, Q4: 18
+      x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)
+
+
+------- Starting model with PFI filter (only important descriptors used) -------
+
+o  Database MVL_PFI_db.csv loaded successfully, including:
+   - 133 datapoints
+   - 3 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model PFI (with PFI filter) and Xy database were loaded, including:
+   - Target value: Hvapor
+   - Names: Name
+   - Model: MVL
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['SGBP', 'Hardness']
+   - Training points: 106
+   - Test points: 27
+   o  Saving CSV databases with predictions and their SD in:
+      -  Predicted results of starting dataset: PREDICT/MVL_PFI.csv
+
+   o  Saving graphs in:
+      -  Graph in: PREDICT/Results_MVL_PFI.png
+      -  Graph in: PREDICT/CV_variability_MVL_PFI.png
+
+   o  Summary of results MVL_PFI:
+      -  Points CV (train+valid.):Test = 106:27
+      -  Proportion CV (train+valid.):Test = 80:20
+      -  Number of descriptors = 2
+      -  Proportion (train+valid.) points:descriptors = 106:2
+      -  10x 5-fold CV : R2 = 0.77, MAE = 4.7, RMSE = 5.7
+      -  Test : R2 = 0.79, MAE = 4.5, RMSE = 5.2
+      -  Average SD in test set = 0.5
+      -  y range of dataset (train+valid.) = 7.2e+01 to 1.3e+02, total 5.4e+01
+
+   o  SHAP plot saved in PREDICT/SHAP_MVL_PFI.png
+      -  SGBP = min: -2.1e+01, max: 2.2e+01
+      -  Hardness = min: -7.9, max: 1.2e+01
+
+   o  PFI plot saved in PREDICT/PFI_MVL_PFI.png
+      Influence on RMSE
+      -  SGBP = 8.7 +- 0.8
+      -  Hardness = 1.6 +- 0.11
+
+   o  The Pearson heatmap was stored in PREDICT/Pearson_heatmap_PFI.png.
+      Ideally, variables should show low correlations.
+      o  Correlations between variables are acceptable
+
+   o  Outliers plot saved in PREDICT/Outliers_MVL_PFI.png
+      Train: 5 outliers out of 106 datapoints (4.7%)
+      -  4-Chlorobiphenyl (2.3 SDs)
+      -  2,2prime,3,5,5prime,6-Hexachlorobiphenyl (2.3 SDs)
+      -  2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl (2.9 SDs)
+      -  2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl (2.9 SDs)
+      -  2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl (2.1 SDs)
+      Test: 0 outliers out of 27 datapoints (0.0%)
+
+   o  y-values distribution plot saved in PREDICT/y_distribution_MVL_PFI.png
+      Ideally, the number of datapoints in the four quartiles of the y-range should be uniform (25% population in each quartile) to have similar confidence intervals in the predictions across the y-range
+      -  The number of points in each quartile is Q1: 24, Q2: 55, Q3: 36, Q4: 18
+      x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)
+
+Time PREDICT: 5.81 seconds
+

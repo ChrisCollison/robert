@@ -1,0 +1,2 @@
+model,type,kfold,repeat_kfolds,seed,error_type,y,names,X_descriptors,params,combined_rmse,split
+NN,reg,5,10,0,rmse,Hvapor,Name,"['SGBP', 'g3']","{'hidden_layer_1': 2, 'hidden_layer_2': 10, 'max_iter': 211, 'alpha': 0.07014972014309279, 'tol': 3.668338221237864e-05, 'random_state': 0, 'solver': 'lbfgs'}",8.365798559723299,even

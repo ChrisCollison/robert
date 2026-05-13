@@ -1,0 +1,64 @@
+ROBERT v 2.1.0 2026/05/13 16:08:19 
+How to cite: Dalmau, D.; Alegre Requena, J. V. WIREs Comput Mol Sci. 2024, 14, e1733.
+
+Command line used in ROBERT: python -m robert --names "Name" --y "Hvapor" --csv_name "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+
+
+o  Starting tests to verify the prediction ability of the ML models with the VERIFY module
+
+
+------- Starting model with all variables (No PFI) -------
+
+o  Database MVL_db.csv loaded successfully, including:
+   - 133 datapoints
+   - 3 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model No_PFI (with no PFI filter) and Xy database were loaded, including:
+   - Target value: Hvapor
+   - Names: Name
+   - Model: MVL
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['Hardness', 'SGBP', 'g3']
+   - Training points: 106
+   - Test points: 27
+
+   o  VERIFY plot saved in VERIFY/VERIFY_tests_MVL_No_PFI.png
+      Results of flawed models and sorted cross-validation:
+      Original RMSE (10x 5-fold CV) 5.7 + 15% & 30% threshold = 6.5 & 7.4
+         o y_mean: PASSED, RMSE = 1.2e+01, higher than thresholds
+         o y_shuffle: PASSED, RMSE = 1.2e+01, higher than thresholds
+         o onehot: PASSED, RMSE = 1.2e+01, higher than thresholds
+         - Sorted 5-fold CV : R2 = [0.64, 0.02, 0.12, 0.12, 0.28], MAE = [7.11, 4.33, 5.09, 4.17, 7.7], RMSE = [7.57, 5.32, 6.46, 4.99, 8.76]
+
+
+------- Starting model with PFI filter (only important descriptors used) -------
+
+o  Database MVL_PFI_db.csv loaded successfully, including:
+   - 133 datapoints
+   - 3 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model PFI (with PFI filter) and Xy database were loaded, including:
+   - Target value: Hvapor
+   - Names: Name
+   - Model: MVL
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['SGBP', 'Hardness']
+   - Training points: 106
+   - Test points: 27
+
+   o  VERIFY plot saved in VERIFY/VERIFY_tests_MVL_PFI.png
+      Results of flawed models and sorted cross-validation:
+      Original RMSE (10x 5-fold CV) 5.7 + 15% & 30% threshold = 6.6 & 7.5
+         o y_mean: PASSED, RMSE = 1.2e+01, higher than thresholds
+         o y_shuffle: PASSED, RMSE = 1.2e+01, higher than thresholds
+         o onehot: PASSED, RMSE = 1.2e+01, higher than thresholds
+         - Sorted 5-fold CV : R2 = [0.57, 0.02, 0.16, 0.1, 0.26], MAE = [7.42, 4.35, 4.96, 4.31, 7.73], RMSE = [7.95, 5.36, 6.43, 5.21, 8.87]
+
+Time VERIFY: 0.48 seconds
+
