@@ -150,6 +150,12 @@ def create_chat_panel() -> dbc.Col:
                 "Heuristics-first answers are enabled. LLM fallback remains optional.",
                 className="text-muted",
             ),
+            html.Br(),
+            html.Small(
+                id="chat-guardrail-status",
+                children="Select a run to enable chat.",
+                className="text-muted",
+            ),
         ],
         md=5,
         className="ps-2",
@@ -189,6 +195,7 @@ def create_main_layout(run_options: List[Dict[str, str]]) -> html.Div:
             # Store for run context (Phase 2)
             dcc.Store(id="run-context-store"),
             dcc.Store(id="diagnosis-store"),
+            dcc.Store(id="parity-store"),
             dcc.Store(id="chat-history-store", data=[]),
         ],
         className="min-vh-100",

@@ -21,6 +21,7 @@ from utils import (
 )
 from config import get_config
 from chat import answer_question, format_chat_message
+from parity import check_parity
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +89,7 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
         role = msg.get("role", "assistant")
         content = msg.get("content", "")
         source = msg.get("source", "assistant")
+        parity_status = msg.get("parity_status", "")
 
         if role == "user":
             blocks.append(
@@ -100,12 +102,24 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
             "openai": "OpenAI",
             "fallback-disabled": "Fallback Disabled",
             "no-api-key": "No API Key",
+            "parity-fail": "Parity Block",
         }.get(source, "Assistant")
+
+        parity_map = {
+            "pass": ("Verified", "success"),
+            "incomplete": ("Partial", "warning"),
+            "fail": ("Unverified", "danger"),
+        }
+        parity_badge = None
+        if parity_status in parity_map:
+            text, color = parity_map[parity_status]
+            parity_badge = dbc.Badge(text, color=color, className="me-2")
 
         blocks.append(
             dbc.Alert(
                 [
                     dbc.Badge(badge_text, color="info", className="me-2"),
+                    parity_badge,
                     html.Span(content),
                 ],
                 color="primary",
@@ -119,6 +133,7 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
     [
         Output("run-context-store", "data"),
         Output("diagnosis-store", "data"),
+        Output("parity-store", "data"),
         Output("document-content", "children"),
     ],
     Input("run-selector", "value"),
@@ -135,15 +150,17 @@ def update_document_on_run_selection(selected_run_path: str) -> Tuple:
         Tuple of (run_context_json, diagnosis_json, document_content_html)
     """
     if not selected_run_path:
-        return None, None, "No run selected."
+        return None, None, None, "No run selected."
     
     # Load run context
     run_context = load_run_context(selected_run_path)
     if not run_context:
-        return None, None, "Error loading run context."
+        return None, None, None, "Error loading run context."
     
     # Resolve run root even when selected path is in llm_run_bundle
     run_dir = str(get_run_root_from_context_path(selected_run_path))
+
+    parity_result = check_parity(run_context, get_run_root_from_context_path(selected_run_path))
     
     # Load diagnosis files
     diagnosis_summary = load_diagnosis_summary(run_dir)
@@ -221,7 +238,31 @@ def update_document_on_run_selection(selected_run_path: str) -> Tuple:
         ]
     )
     
-    return run_context, diagnosis_json, document_content
+    return run_context, diagnosis_json, parity_result, document_content
+
+
+@callback(
+    [
+        Output("chat-input", "disabled"),
+        Output("send-button", "disabled"),
+        Output("chat-guardrail-status", "children"),
+        Output("chat-guardrail-status", "className"),
+    ],
+    Input("parity-store", "data"),
+    prevent_initial_call=False,
+)
+def sync_chat_guardrail(parity_data: Dict[str, Any]) -> Tuple[bool, bool, str, str]:
+    """Enable or disable chat based on parity verification result."""
+    if not isinstance(parity_data, dict):
+        return True, True, "Select a run to enable chat.", "text-muted"
+
+    status = parity_data.get("parity_status")
+    if status == "pass":
+        return False, False, "Parity verified. Chat enabled.", "text-success"
+    if status == "incomplete":
+        return False, False, "Parity partial. Chat enabled with limited evidence.", "text-warning"
+
+    return True, True, "Parity failed. Chat disabled until extraction is fixed.", "text-danger"
 
 
 @callback(
@@ -262,6 +303,7 @@ def update_api_key_status(_) -> str:
         State("chat-history-store", "data"),
         State("run-context-store", "data"),
         State("diagnosis-store", "data"),
+        State("parity-store", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -272,6 +314,7 @@ def handle_chat_message(
     history: List[Dict[str, str]],
     run_context: Dict[str, Any],
     diagnosis_json: Dict[str, Any],
+    parity_data: Dict[str, Any],
 ):
     """Handle user chat message with heuristics-first routing."""
     _ = (send_clicks, n_submit)
@@ -290,12 +333,31 @@ def handle_chat_message(
     base_history = history if isinstance(history, list) else []
     updated_history = base_history + [format_chat_message("user", user_message, source="user")]
 
+    parity_status = "fail"
+    if isinstance(parity_data, dict):
+        parity_status = str(parity_data.get("parity_status", "fail"))
+
+    if parity_status == "fail":
+        blocked = (
+            "Extraction verification failed for this run. "
+            "Please contact the developer and provide the run ID for parity debugging."
+        )
+        updated_history.append(
+            format_chat_message("assistant", blocked, source="parity-fail", parity_status=parity_status)
+        )
+        return updated_history, _render_chat_history(updated_history), ""
+
     result = answer_question(user_message, run_context, diagnosis_json, api_key)
+    reply = result.get("content", "No answer available.")
+    if parity_status == "incomplete":
+        reply = "Parity warning: this run has partial evidence coverage.\n\n" + reply
+
     updated_history.append(
         format_chat_message(
             "assistant",
-            result.get("content", "No answer available."),
+            reply,
             source=result.get("source", "assistant"),
+            parity_status=parity_status,
         )
     )
 

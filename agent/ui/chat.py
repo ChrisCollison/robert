@@ -132,7 +132,12 @@ def build_system_prompt(diagnostic_context: Dict[str, Any]) -> str:
     )
 
 
-def format_chat_message(role: str, content: str, source: str = "assistant") -> Dict[str, str]:
+def format_chat_message(
+    role: str,
+    content: str,
+    source: str = "assistant",
+    parity_status: Optional[str] = None,
+) -> Dict[str, str]:
     """
     Format a single chat message (Phase 2).
     
@@ -143,7 +148,10 @@ def format_chat_message(role: str, content: str, source: str = "assistant") -> D
     Returns:
         Dict with keys: role, content
     """
-    return {"role": role, "content": content, "source": source}
+    message = {"role": role, "content": content, "source": source}
+    if parity_status:
+        message["parity_status"] = parity_status
+    return message
 
 
 def _best_variant(run_context: Dict[str, Any]) -> str:
