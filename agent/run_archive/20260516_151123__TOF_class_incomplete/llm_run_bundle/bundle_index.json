@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "bundle_created_at": "2026-05-16T19:11:36Z",
+  "bundle_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete/llm_run_bundle",
+  "files": {
+    "run_context": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete/llm_run_bundle/run_context.json",
+    "llm_evidence": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete/llm_run_bundle/llm_evidence.json",
+    "report_assets": [
+      {
+        "name": "AQME-ROBERT_interpret_TOF_clasif__20260516_151123__ROBERT_report.pdf",
+        "path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete/llm_run_bundle/report_assets/AQME-ROBERT_interpret_TOF_clasif__20260516_151123__ROBERT_report.pdf",
+        "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete/report_assets/AQME-ROBERT_interpret_TOF_clasif__20260516_151123__ROBERT_report.pdf"
+      }
+    ]
+  },
+  "routing": {
+    "ui_pdf_view_source": "report_assets",
+    "llm_prompt_source": "llm_evidence.json",
+    "note": "LLM should use extracted evidence only, not PDF text."
+  }
+}

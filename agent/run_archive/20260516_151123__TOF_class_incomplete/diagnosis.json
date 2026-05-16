@@ -1,0 +1,363 @@
+{
+  "schema_version": "2.0",
+  "diagnosed_at": "2026-05-16T19:11:39Z",
+  "results_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260516_151123__TOF_class_incomplete",
+  "pred_type": "clas",
+  "ml_model": "RF",
+  "dataset_csv": "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Clasification/AQME-ROBERT_interpret_TOF_clasif.csv",
+  "robert_command": [
+    "synthetic-incomplete-run-for-robustness-test"
+  ],
+  "available": {
+    "predict": true,
+    "verify": false,
+    "curate": false,
+    "generate": false,
+    "test_set": true,
+    "pfi": true,
+    "report_pdf": true
+  },
+  "robert_score": {
+    "no_pfi": null,
+    "pfi": null
+  },
+  "evidence": {
+    "predict": {
+      "no_pfi": {
+        "cv_type": "10x 5-fold CV",
+        "points_descp_ratio": "14:6",
+        "r2_cv": 0.19,
+        "r2_test": 0.33,
+        "rmse_cv": null,
+        "rmse_test": null,
+        "mae_cv": null,
+        "mae_test": null,
+        "mcc_cv": 0.19,
+        "mcc_test": 0.33,
+        "f1_cv": 0.59,
+        "f1_test": 0.5,
+        "accuracy_cv": 0.59,
+        "accuracy_test": 0.5,
+        "avg_sd_test": null,
+        "y_min": null,
+        "y_max": null,
+        "y_range": null,
+        "n_train": 14,
+        "n_test": 4,
+        "n_descriptors": 6,
+        "descriptors": [
+          "LUMO",
+          "Pt_Dipole moment",
+          "Pt_Fukui dual",
+          "Pt_Normaliz. electrophil.",
+          "Pt_Pyramidalization",
+          "SASA"
+        ],
+        "model": "RF",
+        "target": "TOF_class",
+        "kfold": 5,
+        "cv_repeats": 10,
+        "train_outlier_count": null,
+        "train_outlier_pct": null,
+        "test_outlier_count": null,
+        "test_outlier_pct": null,
+        "train_outliers": [],
+        "test_outliers": [],
+        "quartile_counts": null,
+        "y_distribution_warning": null,
+        "feature_importance_summary": [
+          {
+            "descriptor": "Pt_Pyramidalization",
+            "influence_rmse": 0.78,
+            "std": 0.28
+          },
+          {
+            "descriptor": "SASA",
+            "influence_rmse": 0.0,
+            "std": 0.0
+          },
+          {
+            "descriptor": "Pt_Normaliz. electrophil.",
+            "influence_rmse": 0.0,
+            "std": 0.0
+          },
+          {
+            "descriptor": "Pt_Fukui dual",
+            "influence_rmse": 0.0,
+            "std": 0.0
+          },
+          {
+            "descriptor": "Pt_Dipole moment",
+            "influence_rmse": 0.0,
+            "std": 0.0
+          },
+          {
+            "descriptor": "LUMO",
+            "influence_rmse": 0.0,
+            "std": 0.0
+          }
+        ],
+        "artifacts": {
+          "results_plot": "PREDICT/CV_train_valid_predict_RF_No_PFI.png",
+          "cv_variability_plot": "PREDICT/Results_RF_No_PFI_test.png",
+          "shap_plot": "PREDICT/SHAP_RF_No_PFI.png",
+          "pfi_plot": "PREDICT/PFI_RF_No_PFI.png",
+          "pearson_heatmap": "PREDICT/Pearson_heatmap_No_PFI.png",
+          "outliers_plot": null,
+          "y_distribution_plot": "PREDICT/y_distribution_RF_No_PFI.png",
+          "predictions_csv": "PREDICT/RF_No_PFI.csv"
+        },
+        "warnings": [
+          "x  WARNING! Noticeable correlations observed (up to r = 0.82 or R2 = 0.67, for Pt_Fukui dual and Pt_Normaliz. electrophil.)"
+        ]
+      },
+      "pfi": {
+        "cv_type": "10x 5-fold CV",
+        "points_descp_ratio": "14:1",
+        "r2_cv": 0.61,
+        "r2_test": 0.33,
+        "rmse_cv": null,
+        "rmse_test": null,
+        "mae_cv": null,
+        "mae_test": null,
+        "mcc_cv": 0.61,
+        "mcc_test": 0.33,
+        "f1_cv": 0.81,
+        "f1_test": 0.5,
+        "accuracy_cv": 0.81,
+        "accuracy_test": 0.5,
+        "avg_sd_test": null,
+        "y_min": null,
+        "y_max": null,
+        "y_range": null,
+        "n_train": 14,
+        "n_test": 4,
+        "n_descriptors": 1,
+        "descriptors": [
+          "Pt_Pyramidalization"
+        ],
+        "model": "RF",
+        "target": "TOF_class",
+        "kfold": 5,
+        "cv_repeats": 10,
+        "train_outlier_count": null,
+        "train_outlier_pct": null,
+        "test_outlier_count": null,
+        "test_outlier_pct": null,
+        "train_outliers": [],
+        "test_outliers": [],
+        "quartile_counts": null,
+        "y_distribution_warning": null,
+        "feature_importance_summary": [
+          {
+            "descriptor": "Pt_Pyramidalization",
+            "influence_rmse": 0.87,
+            "std": 0.37
+          }
+        ],
+        "artifacts": {
+          "results_plot": "PREDICT/CV_train_valid_predict_RF_PFI.png",
+          "cv_variability_plot": "PREDICT/Results_RF_PFI_test.png",
+          "shap_plot": "PREDICT/SHAP_RF_PFI.png",
+          "pfi_plot": "PREDICT/PFI_RF_PFI.png",
+          "pearson_heatmap": "PREDICT/Pearson_heatmap_PFI.png",
+          "outliers_plot": null,
+          "y_distribution_plot": "PREDICT/y_distribution_RF_PFI.png",
+          "predictions_csv": "PREDICT/RF_PFI.csv"
+        },
+        "warnings": []
+      }
+    },
+    "verify": {
+      "no_pfi": {
+        "failed_tests": null,
+        "unclear_tests": null,
+        "passed_tests": null,
+        "test_results": null,
+        "test_outcomes": [],
+        "flawed_mod_score": null,
+        "sorted_cv_rmse": null,
+        "sorted_cv_r2": null,
+        "sorted_cv_mae": null,
+        "cv_rmse_original": null,
+        "threshold_15": null,
+        "threshold_30": null,
+        "warnings": []
+      },
+      "pfi": {
+        "failed_tests": null,
+        "unclear_tests": null,
+        "passed_tests": null,
+        "test_results": null,
+        "test_outcomes": [],
+        "flawed_mod_score": null,
+        "sorted_cv_rmse": null,
+        "sorted_cv_r2": null,
+        "sorted_cv_mae": null,
+        "cv_rmse_original": null,
+        "threshold_15": null,
+        "threshold_30": null,
+        "warnings": []
+      }
+    },
+    "curate": {
+      "n_initial": null,
+      "n_final": null,
+      "n_dropped": null,
+      "n_features_initial": null,
+      "n_features_final": null,
+      "n_features_removed": null,
+      "ignored_descriptors": null,
+      "warnings": []
+    },
+    "parser_warnings": [
+      "ROBERT score not found in available .dat files for this run; score may only be present in ROBERT_report.pdf."
+    ]
+  },
+  "observations": {
+    "no_pfi": [
+      {
+        "key": "verify_results_missing",
+        "level": "info",
+        "message": "VERIFY test results were not present in extracted ROBERT outputs.",
+        "evidence": {
+          "source": "verify.no_pfi.test_results"
+        }
+      },
+      {
+        "key": "predict_n_train",
+        "level": "info",
+        "message": "ROBERT reported n_train = 14.",
+        "evidence": {
+          "source": "predict.no_pfi.n_train",
+          "value": 14
+        }
+      },
+      {
+        "key": "predict_n_test",
+        "level": "info",
+        "message": "ROBERT reported n_test = 4.",
+        "evidence": {
+          "source": "predict.no_pfi.n_test",
+          "value": 4
+        }
+      },
+      {
+        "key": "predict_n_descriptors",
+        "level": "info",
+        "message": "ROBERT reported n_descriptors = 6.",
+        "evidence": {
+          "source": "predict.no_pfi.n_descriptors",
+          "value": 6
+        }
+      },
+      {
+        "key": "predict_points_descp_ratio",
+        "level": "info",
+        "message": "ROBERT reported points_descp_ratio = 14:6.",
+        "evidence": {
+          "source": "predict.no_pfi.points_descp_ratio",
+          "value": "14:6"
+        }
+      }
+    ],
+    "pfi": [
+      {
+        "key": "verify_results_missing",
+        "level": "info",
+        "message": "VERIFY test results were not present in extracted ROBERT outputs.",
+        "evidence": {
+          "source": "verify.pfi.test_results"
+        }
+      },
+      {
+        "key": "predict_n_train",
+        "level": "info",
+        "message": "ROBERT reported n_train = 14.",
+        "evidence": {
+          "source": "predict.pfi.n_train",
+          "value": 14
+        }
+      },
+      {
+        "key": "predict_n_test",
+        "level": "info",
+        "message": "ROBERT reported n_test = 4.",
+        "evidence": {
+          "source": "predict.pfi.n_test",
+          "value": 4
+        }
+      },
+      {
+        "key": "predict_n_descriptors",
+        "level": "info",
+        "message": "ROBERT reported n_descriptors = 1.",
+        "evidence": {
+          "source": "predict.pfi.n_descriptors",
+          "value": 1
+        }
+      },
+      {
+        "key": "predict_points_descp_ratio",
+        "level": "info",
+        "message": "ROBERT reported points_descp_ratio = 14:1.",
+        "evidence": {
+          "source": "predict.pfi.points_descp_ratio",
+          "value": "14:1"
+        }
+      }
+    ],
+    "global": [
+      {
+        "key": "parser_warnings_present",
+        "level": "info",
+        "message": "Extractor reported parser warnings; cite evidence carefully.",
+        "evidence": {
+          "source": "parser_warnings",
+          "value": [
+            "ROBERT score not found in available .dat files for this run; score may only be present in ROBERT_report.pdf."
+          ]
+        }
+      }
+    ]
+  },
+  "llm_context": {
+    "prompt_intent": "Use ROBERT outputs as authority. Explain implications and next checks without inventing new score systems.",
+    "report_view_mode": "User may view PDF while LLM uses extracted ROBERT context.",
+    "source_policy": {
+      "pdf_to_llm": false,
+      "raw_text_context": true,
+      "image_context": true
+    },
+    "citation_fields": [
+      "predict.no_pfi",
+      "predict.pfi",
+      "verify.no_pfi",
+      "verify.pfi",
+      "curate",
+      "score"
+    ]
+  },
+  "derived_values": {
+    "convenience_only": true,
+    "items": {
+      "no_pfi": {
+        "train_to_descriptor_ratio": {
+          "value": 2.333,
+          "from": "predict.no_pfi.points_descp_ratio",
+          "label": "derived convenience value"
+        }
+      },
+      "pfi": {
+        "train_to_descriptor_ratio": {
+          "value": 14.0,
+          "from": "predict.pfi.points_descp_ratio",
+          "label": "derived convenience value"
+        }
+      }
+    }
+  },
+  "notes": [
+    "ROBERT score not yet populated in run_context.json for this run. Use ROBERT report outputs as authoritative source when available."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "run_timestamp": "20260516_151123",
+  "dataset_tag": "TOF_class_incomplete",
+  "dataset_csv": "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Clasification/AQME-ROBERT_interpret_TOF_clasif.csv",
+  "robert_command": [
+    "synthetic-incomplete-run-for-robustness-test"
+  ],
+  "archived_dirs": [
+    "PREDICT"
+  ]
+}

@@ -44,8 +44,8 @@ Current Reality
 
 Track A: Validation and Evidence Quality (Primary)
 - [ ] Run full regression validation pass on latest archived run and log outcomes.
-- [ ] Run full classification validation pass (wrapper -> extractor -> diagnosis) and log outcomes.
-- [ ] Run incomplete/missing-file robustness pass and confirm null-safe behavior + warnings.
+- [x] Run full classification validation pass (wrapper -> extractor -> diagnosis) and log outcomes (`agent/validation_classification_report_2026-05-16.md`).
+- [x] Run incomplete/missing-file robustness pass and confirm null-safe behavior + warnings (`agent/validation_robustness_report_2026-05-16.md`).
 - [ ] Compare diagnosis outputs with ROBERT report expectations for at least one run.
 - [ ] Record threshold adjustments (if any) with rationale in progress docs.
 

@@ -1,0 +1,118 @@
+ROBERT v 2.1.0 2026/05/16 15:08:39 
+How to cite: Dalmau, D.; Alegre Requena, J. V. WIREs Comput Mol Sci. 2024, 14, e1733.
+
+Command line used in ROBERT: python -m robert --csv_name "Databases/Clasification/AQME-ROBERT_interpret_TOF_clasif.csv" --names "code_name" --y "TOF_class" --type "clas" --model "[RF]" --init_points "1" --n_iter "1"
+
+
+o  Representation of predictions and analysis of ML models with the PREDICT module
+
+
+------- Starting model with all variables (No PFI) -------
+
+o  Database RF_db.csv loaded successfully, including:
+   - 18 datapoints
+   - 6 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model No_PFI (with no PFI filter) and Xy database were loaded, including:
+   - Target value: TOF_class
+   - Names: code_name
+   - Model: RF
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['LUMO', 'Pt_Dipole moment', 'Pt_Fukui dual', 'Pt_Normaliz. electrophil.', 'Pt_Pyramidalization', 'SASA']
+   - Training points: 14
+   - Test points: 4
+   o  Saving CSV databases with predictions and their SD in:
+      -  Predicted results of starting dataset: PREDICT/RF_No_PFI.csv
+
+   o  Saving graphs in:
+      -  Graph in: PREDICT/CV_train_valid_predict_RF_No_PFI.png
+      -  Graph in: PREDICT/Results_RF_No_PFI_test.png
+
+   o  Summary of results RF_No_PFI:
+      -  Points CV (train+valid.):Test = 14:4
+      -  Proportion CV (train+valid.):Test = 78:22
+      -  Number of descriptors = 6
+      -  Proportion (train+valid.) points:descriptors = 14:6
+      -  10x 5-fold CV : Accur. = 0.59, F1 score = 0.59, MCC = 0.19
+      -  Test : Accur. = 0.5, F1 score = 0.5, MCC = 0.33
+
+   o  SHAP plot saved in PREDICT/SHAP_RF_No_PFI.png
+      -  Pt_Pyramidalization = min: -0.43, max: 0.57
+      -  Pt_Dipole moment = min: -0.046, max: 0.019
+      -  Pt_Normaliz. electrophil. = min: -0.029, max: 0.018
+      -  LUMO = min: -0.04, max: 0.017
+      -  SASA = min: -0.019, max: 0.012
+      -  Pt_Fukui dual = min: -0.046, max: 0.0095
+
+   o  PFI plot saved in PREDICT/PFI_RF_No_PFI.png
+      Influence on MCC
+      -  Pt_Pyramidalization = 0.78 +- 0.28
+      -  SASA = 0.0 +- 0.0
+      -  Pt_Normaliz. electrophil. = 0.0 +- 0.0
+      -  Pt_Fukui dual = 0.0 +- 0.0
+      -  Pt_Dipole moment = 0.0 +- 0.0
+      -  LUMO = 0.0 +- 0.0
+
+   o  The Pearson heatmap was stored in PREDICT/Pearson_heatmap_No_PFI.png.
+      Ideally, variables should show low correlations.
+      x  WARNING! Noticeable correlations observed (up to r = 0.82 or R2 = 0.67, for Pt_Fukui dual and Pt_Normaliz. electrophil.)
+
+   o  y-values distribution plot saved in PREDICT/y_distribution_RF_No_PFI.png
+      Ideally, the number of datapoints in each prediction class should be uniform (50% population per class) to have similar reliability in the predictions across classes
+      - The number of points in each class is 0: 10, 1: 8
+      o  Your data seems quite uniform
+
+
+------- Starting model with PFI filter (only important descriptors used) -------
+
+o  Database RF_PFI_db.csv loaded successfully, including:
+   - 18 datapoints
+   - 6 accepted descriptors
+   - 2 ignored descriptors
+   - 0 discarded descriptors
+
+o  ML model PFI (with PFI filter) and Xy database were loaded, including:
+   - Target value: TOF_class
+   - Names: code_name
+   - Model: RF
+   - k-fold CV: 5
+   - Repetitions CV: 10
+   - Descriptors: ['Pt_Pyramidalization']
+   - Training points: 14
+   - Test points: 4
+   o  Saving CSV databases with predictions and their SD in:
+      -  Predicted results of starting dataset: PREDICT/RF_PFI.csv
+
+   o  Saving graphs in:
+      -  Graph in: PREDICT/CV_train_valid_predict_RF_PFI.png
+      -  Graph in: PREDICT/Results_RF_PFI_test.png
+
+   o  Summary of results RF_PFI:
+      -  Points CV (train+valid.):Test = 14:4
+      -  Proportion CV (train+valid.):Test = 78:22
+      -  Number of descriptors = 1
+      -  Proportion (train+valid.) points:descriptors = 14:1
+      -  10x 5-fold CV : Accur. = 0.81, F1 score = 0.81, MCC = 0.61
+      -  Test : Accur. = 0.5, F1 score = 0.5, MCC = 0.33
+
+   o  SHAP plot saved in PREDICT/SHAP_RF_PFI.png
+      -  Pt_Pyramidalization = min: -0.43, max: 0.57
+
+   o  PFI plot saved in PREDICT/PFI_RF_PFI.png
+      Influence on MCC
+      -  Pt_Pyramidalization = 0.87 +- 0.37
+
+   o  The Pearson heatmap was stored in PREDICT/Pearson_heatmap_PFI.png.
+      Ideally, variables should show low correlations.
+      o  Correlations between variables are acceptable
+
+   o  y-values distribution plot saved in PREDICT/y_distribution_RF_PFI.png
+      Ideally, the number of datapoints in each prediction class should be uniform (50% population per class) to have similar reliability in the predictions across classes
+      - The number of points in each class is 0: 10, 1: 8
+      o  Your data seems quite uniform
+
+Time PREDICT: 13.21 seconds
+

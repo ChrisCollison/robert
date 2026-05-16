@@ -287,6 +287,35 @@ This notebook:
 
 ---
 
+## Phase 8 — Classification + Robustness Validation (2026-05-16)
+
+**Goal:** Execute the next validation gates after UI smoke completion: classification branch correctness and missing-file robustness.
+
+**What was done:**
+
+- Ran a full classification ROBERT workflow on `AQME-ROBERT_interpret_TOF_clasif.csv` (`--type clas`) and archived outputs as a new run.
+- Executed `extract_context.ipynb` and `diagnose_score.ipynb` on that classification run.
+- Found and fixed a parser mismatch in `extract_context.ipynb` where classification metrics were emitted by ROBERT as:
+  - `Accur. = ..., F1 score = ..., MCC = ...`
+  rather than MCC-first ordering.
+- Extended parser logic to support both ordering styles and updated classification `pred_type` detection accordingly.
+- Re-ran extraction/diagnosis and confirmed classification fields now populate correctly (`pred_type=clas`, MCC/F1/accuracy parsed for both No PFI and PFI).
+- Created an intentionally incomplete run containing only `PREDICT` outputs and re-ran extraction/diagnosis.
+- Confirmed null-safe behavior with explicit missing evidence representation for absent `VERIFY`, `CURATE`, and `GENERATE` sections.
+
+**Validation artifacts:**
+
+- `agent/validation_classification_report_2026-05-16.md`
+- `agent/validation_robustness_report_2026-05-16.md`
+
+**Current status:**
+
+- Classification validation gate: complete.
+- Missing-file robustness gate: complete.
+- Remaining primary validation item: full regression validation pass and explicit report-vs-diagnosis comparison item in TODO.
+
+---
+
 ## Architecture Summary
 
 ```

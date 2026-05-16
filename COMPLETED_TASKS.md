@@ -80,3 +80,16 @@ Purpose
 - Identified and fixed one heuristics intent gap (`verification tests` phrasing) in `agent/ui/chat.py`.
 - Re-validated that `Did any verification tests fail?` now routes to deterministic `Heuristic` response on both runs.
 - Added formal report: `agent/ui/PHASE1B_SMOKE_TEST_2026-05-16.md`.
+
+### Classification and robustness validation execution
+- Ran a full classification ROBERT workflow on `Databases/Clasification/AQME-ROBERT_interpret_TOF_clasif.csv` and archived outputs in `agent/run_archive/20260516_150946__TOF_class`.
+- Executed extractor and diagnosis notebooks end-to-end on the classification run.
+- Identified and fixed a classification parser issue in `agent/extract_context.ipynb`:
+	- added support for `Accur. = ..., F1 score = ..., MCC = ...` metric ordering,
+	- retained MCC-first fallback support,
+	- expanded `pred_type` detection for classification output formats,
+	- included `Influence on MCC` feature-importance section handling.
+- Re-ran extraction/diagnosis and confirmed classification fields populate correctly (`pred_type=clas`, MCC/F1/accuracy values present).
+- Added classification validation report: `agent/validation_classification_report_2026-05-16.md`.
+- Created an intentionally incomplete run (`PREDICT` only) at `agent/run_archive/20260516_151123__TOF_class_incomplete` and validated null-safe extractor/diagnosis behavior.
+- Added robustness validation report: `agent/validation_robustness_report_2026-05-16.md`.
