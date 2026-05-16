@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "bundle_created_at": "2026-05-16T02:49:55Z",
+  "bundle_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor/llm_run_bundle",
+  "files": {
+    "run_context": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor/llm_run_bundle/run_context.json",
+    "llm_evidence": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor/llm_run_bundle/llm_evidence.json",
+    "report_assets": [
+      {
+        "name": "Hvapor__20260515_173258__ROBERT_report.pdf",
+        "path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor/llm_run_bundle/report_assets/Hvapor__20260515_173258__ROBERT_report.pdf",
+        "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor/report_assets/Hvapor__20260515_173258__ROBERT_report.pdf"
+      }
+    ]
+  },
+  "routing": {
+    "ui_pdf_view_source": "report_assets",
+    "llm_prompt_source": "llm_evidence.json",
+    "note": "LLM should use extracted evidence only, not PDF text."
+  }
+}

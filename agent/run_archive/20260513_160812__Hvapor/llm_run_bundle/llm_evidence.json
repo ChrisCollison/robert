@@ -1,0 +1,413 @@
+{
+  "schema_version": "1.0",
+  "built_at": "2026-05-15T21:24:24Z",
+  "source_run_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260513_160812__Hvapor",
+  "source_of_truth": "ROBERT outputs",
+  "policy": {
+    "pdf_for_view_only": true,
+    "llm_must_use_extracted_evidence_only": true,
+    "no_competing_score_system": true
+  },
+  "provenance": {
+    "robert_version": "2.1.0",
+    "robert_command": [
+      "python",
+      "-m",
+      "robert",
+      "--names",
+      "Name",
+      "--y",
+      "Hvapor",
+      "--csv_name",
+      "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+    ],
+    "dataset_csv": "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+  },
+  "report_assets": {
+    "pdf_files": [
+      {
+        "name": "Hvapor__20260513_160812__ROBERT_report.pdf",
+        "path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260513_160812__Hvapor/report_assets/Hvapor__20260513_160812__ROBERT_report.pdf",
+        "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/ROBERT_report.pdf",
+        "dataset_tag": "Hvapor",
+        "run_timestamp": "20260513_160812"
+      }
+    ]
+  },
+  "score": {
+    "no_pfi": null,
+    "pfi": null
+  },
+  "predict": {
+    "no_pfi": {
+      "cv_type": "10x 5-fold CV",
+      "points_descp_ratio": "106:3",
+      "r2_cv": 0.77,
+      "r2_test": 0.78,
+      "rmse_cv": 5.7,
+      "rmse_test": 5.5,
+      "mae_cv": 4.7,
+      "mae_test": 4.7,
+      "mcc_cv": null,
+      "mcc_test": null,
+      "f1_cv": null,
+      "f1_test": null,
+      "accuracy_cv": null,
+      "accuracy_test": null,
+      "avg_sd_test": 0.51,
+      "y_min": 72.0,
+      "y_max": 130.0,
+      "y_range": 54.0,
+      "n_train": 106,
+      "n_test": 27,
+      "n_descriptors": 3,
+      "descriptors": [
+        "Hardness",
+        "SGBP",
+        "g3"
+      ],
+      "model": "MVL",
+      "target": "Hvapor",
+      "kfold": 5,
+      "cv_repeats": 10,
+      "train_outlier_count": 4,
+      "train_outlier_pct": 3.8,
+      "test_outlier_count": 0,
+      "test_outlier_pct": 0.0,
+      "train_outliers": [
+        {
+          "name": "2,2prime,3,5,5prime,6-Hexachlorobiphenyl",
+          "sd": 2.2
+        },
+        {
+          "name": "2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl",
+          "sd": 3.0
+        },
+        {
+          "name": "2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl",
+          "sd": 3.1
+        },
+        {
+          "name": "2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl",
+          "sd": 2.2
+        }
+      ],
+      "test_outliers": [],
+      "quartile_counts": [
+        24,
+        55,
+        36,
+        18
+      ],
+      "y_distribution_warning": "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)",
+      "feature_importance_summary": [
+        {
+          "descriptor": "SGBP",
+          "influence_rmse": 7.2,
+          "std": 0.74
+        },
+        {
+          "descriptor": "Hardness",
+          "influence_rmse": 1.6,
+          "std": 0.11
+        },
+        {
+          "descriptor": "g3",
+          "influence_rmse": 0.36,
+          "std": 0.11
+        }
+      ],
+      "artifacts": {
+        "results_plot": "PREDICT/Results_MVL_No_PFI.png",
+        "cv_variability_plot": "PREDICT/CV_variability_MVL_No_PFI.png",
+        "shap_plot": "PREDICT/SHAP_MVL_No_PFI.png",
+        "pfi_plot": "PREDICT/PFI_MVL_No_PFI.png",
+        "pearson_heatmap": "PREDICT/Pearson_heatmap_No_PFI.png",
+        "outliers_plot": "PREDICT/Outliers_MVL_No_PFI.png",
+        "y_distribution_plot": "PREDICT/y_distribution_MVL_No_PFI.png",
+        "predictions_csv": "PREDICT/MVL_No_PFI.csv"
+      },
+      "warnings": [
+        "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)"
+      ]
+    },
+    "pfi": {
+      "cv_type": "10x 5-fold CV",
+      "points_descp_ratio": "106:2",
+      "r2_cv": 0.77,
+      "r2_test": 0.79,
+      "rmse_cv": 5.7,
+      "rmse_test": 5.2,
+      "mae_cv": 4.7,
+      "mae_test": 4.5,
+      "mcc_cv": null,
+      "mcc_test": null,
+      "f1_cv": null,
+      "f1_test": null,
+      "accuracy_cv": null,
+      "accuracy_test": null,
+      "avg_sd_test": 0.5,
+      "y_min": 72.0,
+      "y_max": 130.0,
+      "y_range": 54.0,
+      "n_train": 106,
+      "n_test": 27,
+      "n_descriptors": 2,
+      "descriptors": [
+        "SGBP",
+        "Hardness"
+      ],
+      "model": "MVL",
+      "target": "Hvapor",
+      "kfold": 5,
+      "cv_repeats": 10,
+      "train_outlier_count": 5,
+      "train_outlier_pct": 4.7,
+      "test_outlier_count": 0,
+      "test_outlier_pct": 0.0,
+      "train_outliers": [
+        {
+          "name": "4-Chlorobiphenyl",
+          "sd": 2.3
+        },
+        {
+          "name": "2,2prime,3,5,5prime,6-Hexachlorobiphenyl",
+          "sd": 2.3
+        },
+        {
+          "name": "2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl",
+          "sd": 2.9
+        },
+        {
+          "name": "2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl",
+          "sd": 2.9
+        },
+        {
+          "name": "2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl",
+          "sd": 2.1
+        }
+      ],
+      "test_outliers": [],
+      "quartile_counts": [
+        24,
+        55,
+        36,
+        18
+      ],
+      "y_distribution_warning": "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)",
+      "feature_importance_summary": [
+        {
+          "descriptor": "SGBP",
+          "influence_rmse": 8.7,
+          "std": 0.8
+        },
+        {
+          "descriptor": "Hardness",
+          "influence_rmse": 1.6,
+          "std": 0.11
+        }
+      ],
+      "artifacts": {
+        "results_plot": "PREDICT/Results_MVL_PFI.png",
+        "cv_variability_plot": "PREDICT/CV_variability_MVL_PFI.png",
+        "shap_plot": "PREDICT/SHAP_MVL_PFI.png",
+        "pfi_plot": "PREDICT/PFI_MVL_PFI.png",
+        "pearson_heatmap": "PREDICT/Pearson_heatmap_PFI.png",
+        "outliers_plot": "PREDICT/Outliers_MVL_PFI.png",
+        "y_distribution_plot": "PREDICT/y_distribution_MVL_PFI.png",
+        "predictions_csv": "PREDICT/MVL_PFI.csv"
+      },
+      "warnings": [
+        "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)"
+      ]
+    }
+  },
+  "verify": {
+    "no_pfi": {
+      "failed_tests": 0,
+      "unclear_tests": 0,
+      "passed_tests": 3,
+      "test_results": [
+        "y_mean: PASSED",
+        "y_shuffle: PASSED",
+        "onehot: PASSED"
+      ],
+      "test_outcomes": [
+        {
+          "test": "y_mean",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        },
+        {
+          "test": "y_shuffle",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        },
+        {
+          "test": "onehot",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        }
+      ],
+      "flawed_mod_score": 0,
+      "sorted_cv_rmse": [
+        7.57,
+        5.32,
+        6.46,
+        4.99,
+        8.76
+      ],
+      "sorted_cv_r2": [
+        0.64,
+        0.02,
+        0.12,
+        0.12,
+        0.28
+      ],
+      "sorted_cv_mae": [
+        7.11,
+        4.33,
+        5.09,
+        4.17,
+        7.7
+      ],
+      "cv_rmse_original": 5.7,
+      "threshold_15": 6.5,
+      "threshold_30": 7.4,
+      "warnings": []
+    },
+    "pfi": {
+      "failed_tests": 0,
+      "unclear_tests": 0,
+      "passed_tests": 3,
+      "test_results": [
+        "y_mean: PASSED",
+        "y_shuffle: PASSED",
+        "onehot: PASSED"
+      ],
+      "test_outcomes": [
+        {
+          "test": "y_mean",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        },
+        {
+          "test": "y_shuffle",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        },
+        {
+          "test": "onehot",
+          "verdict": "PASSED",
+          "metric_name": "RMSE",
+          "metric_value": 12.0,
+          "note": "higher than thresholds"
+        }
+      ],
+      "flawed_mod_score": 0,
+      "sorted_cv_rmse": [
+        7.95,
+        5.36,
+        6.43,
+        5.21,
+        8.87
+      ],
+      "sorted_cv_r2": [
+        0.57,
+        0.02,
+        0.16,
+        0.1,
+        0.26
+      ],
+      "sorted_cv_mae": [
+        7.42,
+        4.35,
+        4.96,
+        4.31,
+        7.73
+      ],
+      "cv_rmse_original": 5.7,
+      "threshold_15": 6.6,
+      "threshold_30": 7.5,
+      "warnings": []
+    }
+  },
+  "curate": {
+    "n_initial": 133,
+    "n_final": 133,
+    "n_dropped": 0,
+    "n_features_initial": 5,
+    "n_features_final": 3,
+    "n_features_removed": 2,
+    "ignored_descriptors": 1,
+    "warnings": [
+      "x The RFECV filter was not applied, there are less descriptors than one-third of the data points (3 <= 44)"
+    ]
+  },
+  "generate": {
+    "model_screening_summary": [
+      {
+        "metric": "RMSE",
+        "model": "RF",
+        "value": 9.8,
+        "raw": "o Best combined RMSE (target) found in BO for RF (no PFI filter): 9.8"
+      },
+      {
+        "metric": "RMSE",
+        "model": "RF",
+        "value": 10.0,
+        "raw": "o Combined RMSE for RF (with PFI filter): 1e+01"
+      },
+      {
+        "metric": "RMSE",
+        "model": "GB",
+        "value": 9.6,
+        "raw": "o Best combined RMSE (target) found in BO for GB (no PFI filter): 9.6"
+      },
+      {
+        "metric": "RMSE",
+        "model": "GB",
+        "value": 10.0,
+        "raw": "o Combined RMSE for GB (with PFI filter): 1e+01"
+      },
+      {
+        "metric": "RMSE",
+        "model": "NN",
+        "value": 7.4,
+        "raw": "o Best combined RMSE (target) found in BO for NN (no PFI filter): 7.4"
+      },
+      {
+        "metric": "RMSE",
+        "model": "NN",
+        "value": 8.4,
+        "raw": "o Combined RMSE for NN (with PFI filter): 8.4"
+      },
+      {
+        "metric": "RMSE",
+        "model": "MVL",
+        "value": 7.2,
+        "raw": "o Combined RMSE for MVL (no BO needed) (no PFI filter): 7.2"
+      },
+      {
+        "metric": "RMSE",
+        "model": "MVL",
+        "value": 7.3,
+        "raw": "o Combined RMSE for MVL (with PFI filter): 7.3"
+      }
+    ],
+    "warnings": []
+  },
+  "parser_warnings": [
+    "ROBERT score not found in available .dat files for this run; score may only be present in ROBERT_report.pdf."
+  ]
+}

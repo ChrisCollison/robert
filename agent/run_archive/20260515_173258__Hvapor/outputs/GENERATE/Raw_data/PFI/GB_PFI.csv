@@ -1,0 +1,2 @@
+model,type,kfold,repeat_kfolds,seed,error_type,y,names,X_descriptors,params,combined_rmse,split
+GB,reg,5,10,0,rmse,Hvapor,Name,"['SGBP', 'Hardness']","{'n_estimators': 50, 'learning_rate': 0.12475749960963835, 'max_depth': 9, 'min_samples_split': 3, 'min_samples_leaf': 2, 'subsample': 0.9795570685735397, 'max_features': 0.6801395516591946, 'validation_fraction': 0.29912167269446444, 'min_weight_fraction_leaf': 0.0035803726561432162, 'ccp_alpha': 0.008868126057368215, 'random_state': 0}",10.299731449773242,even

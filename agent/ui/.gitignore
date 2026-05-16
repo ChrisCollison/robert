@@ -1,0 +1,26 @@
+# UI-specific ignores
+
+# API key configuration (NEVER commit)
+config/.env
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dash cache
+.dash/

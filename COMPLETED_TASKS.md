@@ -33,3 +33,9 @@ Purpose
 - Updated `agent/robert_run_wrapper.ipynb` so `ROBERT_COMMAND` is auto-generated from `DATASET_CSV` plus a single `ROBERT_OPTIONS` dictionary.
 - Added helper conversion of notebook options to CLI flags (`--key value` and bool-flag support).
 - Added command preview print in execution cell to confirm the exact command before run.
+
+### Diagnosis notebook implementation start
+- Added `agent/diagnose_score.ipynb` as the rule-based diagnosis layer consuming `run_context.json`.
+- Implemented deterministic score-component decomposition aligned to `robert/report_utils.py` thresholds for regression and classification branches.
+- Implemented evidence-linked diagnostic flags for CV/test quality, VERIFY failures, outlier burden, quartile imbalance, and evidence gaps.
+- Added artifact writing for per-run outputs: `diagnosis.json` and `diagnosis_summary.md`.

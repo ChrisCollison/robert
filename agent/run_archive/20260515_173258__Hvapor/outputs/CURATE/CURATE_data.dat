@@ -1,0 +1,48 @@
+ROBERT v 2.1.0 2026/05/15 17:33:03 
+How to cite: Dalmau, D.; Alegre Requena, J. V. WIREs Comput Mol Sci. 2024, 14, e1733.
+
+Command line used in ROBERT: python -m robert --names "Name" --y "Hvapor" --csv_name "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+
+
+o  Starting data curation with the CURATE module
+
+o  Database Hvapor.csv loaded successfully, including:
+   - 133 datapoints
+   - 5 accepted descriptors
+   - 1 ignored descriptors
+   - 0 discarded descriptors
+
+o  Analyzing categorical variables
+   - No categorical variables were found
+
+o  Duplication filters activated
+   Excluded datapoints:
+   -  No datapoints were removed
+
+o  Correlation filter activated with these thresholds: thres_x = 0.7
+   Excluded descriptors:
+
+   - IF removed (R2 = 1.00 with SGBP), kept more predictive descriptor
+   - SS removed (R2 = 1.00 with SGBP), kept more predictive descriptor
+   - Total: 2 descriptors removed due to high correlation with other descriptors
+
+   x The RFECV filter was not applied, there are less descriptors than one-third of the data points (3 <= 44)
+
+   o Model RF: 3 descriptors remaining:
+      Hardness, SGBP, g3
+
+   o Model GB: 3 descriptors remaining:
+      Hardness, SGBP, g3
+
+   o Model NN: 3 descriptors remaining:
+      Hardness, SGBP, g3
+
+   o Model MVL: 3 descriptors remaining:
+      Hardness, SGBP, g3
+
+o  Model-specific curated databases were stored in /Users/cjcscha/ROBERT/helper_rob/robert/CURATE
+
+o  The Pearson heatmap was stored in CURATE/Pearson_heatmap.png.
+
+Time CURATE: 0.19 seconds
+

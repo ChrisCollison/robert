@@ -156,31 +156,58 @@ This notebook:
 
 ---
 
+## Phase 5 — Diagnosis Notebook (2026-05-13, session 4)
+
+**Goal:** Convert extracted evidence into deterministic, auditable diagnosis outputs.
+
+**What was built:** `agent/diagnose_score.ipynb`
+
+This notebook:
+1. Loads a selected `run_context.json` (or auto-selects the most recent one).
+2. Computes score-relevant component values for both `no_pfi` and `pfi` variants.
+3. Mirrors ROBERT threshold logic from `report_utils.py` where available:
+  - scaled RMSE/MCC bucket scores,
+  - R2 penalty thresholds,
+  - CV-test RMSE factor score,
+  - SD coverage score,
+  - VERIFY flawed-model and sorted-CV contributions.
+4. Emits deterministic evidence-linked flags for:
+  - low CV/test quality,
+  - large CV-test discrepancies,
+  - failed VERIFY tests,
+  - high outlier fraction,
+  - y-distribution imbalance,
+  - missing evidence sections.
+5. Writes diagnosis artifacts next to `run_context.json`:
+  - `diagnosis.json`
+  - `diagnosis_summary.md`
+
+**Scope notes:**
+- This is rule-based and deterministic (no LLM calls).
+- This does not modify ROBERT scoring code; it is a companion diagnosis layer.
+- Some classification score terms present in `report_utils.py` (for example `descp_score`) are
+  referenced there but not populated in the ROBERT code path; the notebook treats these as
+  unavailable evidence in V1.
+
+---
+
 ## Next Steps
 
-1. **Run `agent/extract_context.ipynb`** on the archived Hvapor run and verify that
-   `run_context.json` is fully populated with no unexpected nulls.
+1. **Validate diagnosis on the archived Hvapor run:** execute `agent/diagnose_score.ipynb`
+  and confirm `diagnosis.json` + `diagnosis_summary.md` are generated with expected flags.
 
 2. **Validate on a classification run:** pick a dataset from `Databases/Clasification/`,
-   run it through the wrapper, then run the extractor. Confirm RMSE fields are null and
-   MCC fields are populated.
+  run wrapper -> extractor -> diagnosis. Confirm MCC-oriented branches populate and RMSE-only
+  logic stays null-safe.
 
-3. **Validate on an incomplete run:** create a run folder with only CURATE outputs
-   present (or deliberately stop ROBERT early) and confirm the extractor sets
-   `available.*` correctly and does not crash.
+3. **Validate on an incomplete run:** create or capture a missing-module run and confirm
+  diagnosis reports evidence gaps instead of failing.
 
-4. **Build `agent/diagnose_score.ipynb`:** apply rule-based flags to the extracted
-   context. Rules should cover:
-   - Small dataset (N < 50, N < 100)
-   - Low CV R² / high RMSE relative to y range
-   - CV vs test discrepancy (possible overfitting or data leakage)
-   - Failed VERIFY baseline tests
-   - Poor extrapolation (sorted CV performance)
-   - Skewed y distribution (quartile imbalance)
-   - High outlier fraction
+4. **Refine diagnosis thresholds where needed:** lock any agent-only thresholds with
+  explicit rationale, then keep them stable for reproducible comparisons.
 
-5. **Commit and push** the extractor notebook and this progress log to
-   `myfork/agent-score-explainer`.
+5. **Commit and push** diagnosis notebook plus updated tracking docs to
+  `myfork/agent-score-explainer`.
 
 ---
 
@@ -205,7 +232,7 @@ robert_run_wrapper.ipynb
             └── parses .dat files → writes run_context.json
                         │
                         ▼
-            diagnose_score.ipynb  (not yet built)
+            diagnose_score.ipynb
                 └── rule-based flags → score explanation
                             │
                             ▼

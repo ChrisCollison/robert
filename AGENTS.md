@@ -8,6 +8,22 @@ We are building an optional companion layer for ROBERT that helps chemists under
 
 The goal is not to replace ROBERT, rewrite ROBERT, or change its scientific behavior. The goal is to inspect ROBERT outputs, identify evidence relevant to the score, and produce a clear explanation that helps a chemist understand what happened and what to try next.
 
+## Core Operating Principle
+
+The companion agent is a wrapper around ROBERT, not a competing scoring system.
+
+The agent must:
+- treat ROBERT outputs and documented ROBERT logic as the authority,
+- extract, normalize, cite, and explain ROBERT-generated evidence,
+- keep all deterministic evidence auditable and visible,
+- clearly label any computed value as a derived convenience value.
+
+The agent must not:
+- present a separate agent score,
+- override ROBERT's reported score,
+- invent new score components,
+- invent warning thresholds not present in ROBERT outputs or documented ROBERT logic.
+
 ## CRITICAL RULES
 
 1. The `robert/` directory is READ-ONLY.
@@ -90,7 +106,7 @@ The prototype should:
 1. locate relevant output files,
 2. extract metrics and diagnostic evidence,
 3. create a structured `run_context.json`,
-4. generate rule-based diagnostic flags,
+4. generate evidence-linked observations grounded in ROBERT outputs,
 5. optionally produce a natural-language explanation.
 
 The first version should not:

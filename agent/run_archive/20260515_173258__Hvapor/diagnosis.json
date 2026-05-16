@@ -1,0 +1,651 @@
+{
+  "schema_version": "2.0",
+  "diagnosed_at": "2026-05-15T21:39:43Z",
+  "results_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor",
+  "pred_type": "reg",
+  "ml_model": "MVL",
+  "dataset_csv": "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv",
+  "robert_command": [
+    "python",
+    "-m",
+    "robert",
+    "--names",
+    "Name",
+    "--y",
+    "Hvapor",
+    "--csv_name",
+    "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/Hvapor.csv"
+  ],
+  "available": {
+    "predict": true,
+    "verify": true,
+    "curate": true,
+    "generate": true,
+    "test_set": true,
+    "pfi": true,
+    "report_pdf": true
+  },
+  "robert_score": {
+    "no_pfi": null,
+    "pfi": null
+  },
+  "evidence": {
+    "predict": {
+      "no_pfi": {
+        "cv_type": "10x 5-fold CV",
+        "points_descp_ratio": "106:3",
+        "r2_cv": 0.77,
+        "r2_test": 0.78,
+        "rmse_cv": 5.7,
+        "rmse_test": 5.5,
+        "mae_cv": 4.7,
+        "mae_test": 4.7,
+        "mcc_cv": null,
+        "mcc_test": null,
+        "f1_cv": null,
+        "f1_test": null,
+        "accuracy_cv": null,
+        "accuracy_test": null,
+        "avg_sd_test": 0.51,
+        "y_min": 72.0,
+        "y_max": 130.0,
+        "y_range": 54.0,
+        "n_train": 106,
+        "n_test": 27,
+        "n_descriptors": 3,
+        "descriptors": [
+          "Hardness",
+          "SGBP",
+          "g3"
+        ],
+        "model": "MVL",
+        "target": "Hvapor",
+        "kfold": 5,
+        "cv_repeats": 10,
+        "train_outlier_count": 4,
+        "train_outlier_pct": 3.8,
+        "test_outlier_count": 0,
+        "test_outlier_pct": 0.0,
+        "train_outliers": [
+          {
+            "name": "2,2prime,3,5,5prime,6-Hexachlorobiphenyl",
+            "sd": 2.2
+          },
+          {
+            "name": "2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl",
+            "sd": 3.0
+          },
+          {
+            "name": "2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl",
+            "sd": 3.1
+          },
+          {
+            "name": "2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl",
+            "sd": 2.2
+          }
+        ],
+        "test_outliers": [],
+        "quartile_counts": [
+          24,
+          55,
+          36,
+          18
+        ],
+        "y_distribution_warning": "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)",
+        "feature_importance_summary": [
+          {
+            "descriptor": "SGBP",
+            "influence_rmse": 7.2,
+            "std": 0.74
+          },
+          {
+            "descriptor": "Hardness",
+            "influence_rmse": 1.6,
+            "std": 0.11
+          },
+          {
+            "descriptor": "g3",
+            "influence_rmse": 0.36,
+            "std": 0.11
+          }
+        ],
+        "artifacts": {
+          "results_plot": "PREDICT/Results_MVL_No_PFI.png",
+          "cv_variability_plot": "PREDICT/CV_variability_MVL_No_PFI.png",
+          "shap_plot": "PREDICT/SHAP_MVL_No_PFI.png",
+          "pfi_plot": "PREDICT/PFI_MVL_No_PFI.png",
+          "pearson_heatmap": "PREDICT/Pearson_heatmap_No_PFI.png",
+          "outliers_plot": "PREDICT/Outliers_MVL_No_PFI.png",
+          "y_distribution_plot": "PREDICT/y_distribution_MVL_No_PFI.png",
+          "predictions_csv": "PREDICT/MVL_No_PFI.csv"
+        },
+        "warnings": [
+          "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)"
+        ]
+      },
+      "pfi": {
+        "cv_type": "10x 5-fold CV",
+        "points_descp_ratio": "106:2",
+        "r2_cv": 0.77,
+        "r2_test": 0.79,
+        "rmse_cv": 5.7,
+        "rmse_test": 5.2,
+        "mae_cv": 4.7,
+        "mae_test": 4.5,
+        "mcc_cv": null,
+        "mcc_test": null,
+        "f1_cv": null,
+        "f1_test": null,
+        "accuracy_cv": null,
+        "accuracy_test": null,
+        "avg_sd_test": 0.5,
+        "y_min": 72.0,
+        "y_max": 130.0,
+        "y_range": 54.0,
+        "n_train": 106,
+        "n_test": 27,
+        "n_descriptors": 2,
+        "descriptors": [
+          "SGBP",
+          "Hardness"
+        ],
+        "model": "MVL",
+        "target": "Hvapor",
+        "kfold": 5,
+        "cv_repeats": 10,
+        "train_outlier_count": 5,
+        "train_outlier_pct": 4.7,
+        "test_outlier_count": 0,
+        "test_outlier_pct": 0.0,
+        "train_outliers": [
+          {
+            "name": "4-Chlorobiphenyl",
+            "sd": 2.3
+          },
+          {
+            "name": "2,2prime,3,5,5prime,6-Hexachlorobiphenyl",
+            "sd": 2.3
+          },
+          {
+            "name": "2,2prime,3,3prime,5,6,6prime-Heptachlorobiphenyl",
+            "sd": 2.9
+          },
+          {
+            "name": "2,3,3prime,4,4prime,5prime,6-Heptachlorobiphenyl",
+            "sd": 2.9
+          },
+          {
+            "name": "2,3,3prime,4,4prime,5,5prime,6-Octachlorobiphenyl",
+            "sd": 2.1
+          }
+        ],
+        "test_outliers": [],
+        "quartile_counts": [
+          24,
+          55,
+          36,
+          18
+        ],
+        "y_distribution_warning": "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)",
+        "feature_importance_summary": [
+          {
+            "descriptor": "SGBP",
+            "influence_rmse": 8.7,
+            "std": 0.8
+          },
+          {
+            "descriptor": "Hardness",
+            "influence_rmse": 1.6,
+            "std": 0.11
+          }
+        ],
+        "artifacts": {
+          "results_plot": "PREDICT/Results_MVL_PFI.png",
+          "cv_variability_plot": "PREDICT/CV_variability_MVL_PFI.png",
+          "shap_plot": "PREDICT/SHAP_MVL_PFI.png",
+          "pfi_plot": "PREDICT/PFI_MVL_PFI.png",
+          "pearson_heatmap": "PREDICT/Pearson_heatmap_PFI.png",
+          "outliers_plot": "PREDICT/Outliers_MVL_PFI.png",
+          "y_distribution_plot": "PREDICT/y_distribution_MVL_PFI.png",
+          "predictions_csv": "PREDICT/MVL_PFI.csv"
+        },
+        "warnings": [
+          "x  WARNING! Your data is slightly not uniform (Q4 has 18 points while Q2 has 55)"
+        ]
+      }
+    },
+    "verify": {
+      "no_pfi": {
+        "failed_tests": 0,
+        "unclear_tests": 0,
+        "passed_tests": 3,
+        "test_results": [
+          "y_mean: PASSED",
+          "y_shuffle: PASSED",
+          "onehot: PASSED"
+        ],
+        "test_outcomes": [
+          {
+            "test": "y_mean",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          },
+          {
+            "test": "y_shuffle",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          },
+          {
+            "test": "onehot",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          }
+        ],
+        "flawed_mod_score": 0,
+        "sorted_cv_rmse": [
+          7.57,
+          5.32,
+          6.46,
+          4.99,
+          8.76
+        ],
+        "sorted_cv_r2": [
+          0.64,
+          0.02,
+          0.12,
+          0.12,
+          0.28
+        ],
+        "sorted_cv_mae": [
+          7.11,
+          4.33,
+          5.09,
+          4.17,
+          7.7
+        ],
+        "cv_rmse_original": 5.7,
+        "threshold_15": 6.5,
+        "threshold_30": 7.4,
+        "warnings": []
+      },
+      "pfi": {
+        "failed_tests": 0,
+        "unclear_tests": 0,
+        "passed_tests": 3,
+        "test_results": [
+          "y_mean: PASSED",
+          "y_shuffle: PASSED",
+          "onehot: PASSED"
+        ],
+        "test_outcomes": [
+          {
+            "test": "y_mean",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          },
+          {
+            "test": "y_shuffle",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          },
+          {
+            "test": "onehot",
+            "verdict": "PASSED",
+            "metric_name": "RMSE",
+            "metric_value": 12.0,
+            "note": "higher than thresholds"
+          }
+        ],
+        "flawed_mod_score": 0,
+        "sorted_cv_rmse": [
+          7.95,
+          5.36,
+          6.43,
+          5.21,
+          8.87
+        ],
+        "sorted_cv_r2": [
+          0.57,
+          0.02,
+          0.16,
+          0.1,
+          0.26
+        ],
+        "sorted_cv_mae": [
+          7.42,
+          4.35,
+          4.96,
+          4.31,
+          7.73
+        ],
+        "cv_rmse_original": 5.7,
+        "threshold_15": 6.6,
+        "threshold_30": 7.5,
+        "warnings": []
+      }
+    },
+    "curate": {
+      "n_initial": 133,
+      "n_final": 133,
+      "n_dropped": 0,
+      "n_features_initial": 5,
+      "n_features_final": 3,
+      "n_features_removed": 2,
+      "ignored_descriptors": 1,
+      "warnings": [
+        "x The RFECV filter was not applied, there are less descriptors than one-third of the data points (3 <= 44)"
+      ]
+    },
+    "parser_warnings": [
+      "ROBERT score not found in available .dat files for this run; score may only be present in ROBERT_report.pdf."
+    ]
+  },
+  "observations": {
+    "no_pfi": [
+      {
+        "key": "verify_y_mean",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: y_mean -> PASSED",
+        "evidence": {
+          "source": "verify.no_pfi.test_results",
+          "test": "y_mean",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_y_shuffle",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: y_shuffle -> PASSED",
+        "evidence": {
+          "source": "verify.no_pfi.test_results",
+          "test": "y_shuffle",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_onehot",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: onehot -> PASSED",
+        "evidence": {
+          "source": "verify.no_pfi.test_results",
+          "test": "onehot",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_failed_tests",
+        "level": "info",
+        "message": "ROBERT reported failed_tests = 0.",
+        "evidence": {
+          "source": "verify.no_pfi.failed_tests",
+          "value": 0
+        }
+      },
+      {
+        "key": "verify_unclear_tests",
+        "level": "info",
+        "message": "ROBERT reported unclear_tests = 0.",
+        "evidence": {
+          "source": "verify.no_pfi.unclear_tests",
+          "value": 0
+        }
+      },
+      {
+        "key": "verify_passed_tests",
+        "level": "info",
+        "message": "ROBERT reported passed_tests = 3.",
+        "evidence": {
+          "source": "verify.no_pfi.passed_tests",
+          "value": 3
+        }
+      },
+      {
+        "key": "verify_flawed_mod_score",
+        "level": "info",
+        "message": "ROBERT reported flawed_mod_score = 0.",
+        "evidence": {
+          "source": "verify.no_pfi.flawed_mod_score",
+          "value": 0
+        }
+      },
+      {
+        "key": "predict_n_train",
+        "level": "info",
+        "message": "ROBERT reported n_train = 106.",
+        "evidence": {
+          "source": "predict.no_pfi.n_train",
+          "value": 106
+        }
+      },
+      {
+        "key": "predict_n_test",
+        "level": "info",
+        "message": "ROBERT reported n_test = 27.",
+        "evidence": {
+          "source": "predict.no_pfi.n_test",
+          "value": 27
+        }
+      },
+      {
+        "key": "predict_n_descriptors",
+        "level": "info",
+        "message": "ROBERT reported n_descriptors = 3.",
+        "evidence": {
+          "source": "predict.no_pfi.n_descriptors",
+          "value": 3
+        }
+      },
+      {
+        "key": "predict_points_descp_ratio",
+        "level": "info",
+        "message": "ROBERT reported points_descp_ratio = 106:3.",
+        "evidence": {
+          "source": "predict.no_pfi.points_descp_ratio",
+          "value": "106:3"
+        }
+      },
+      {
+        "key": "predict_train_outlier_pct",
+        "level": "info",
+        "message": "ROBERT reported train_outlier_pct = 3.8.",
+        "evidence": {
+          "source": "predict.no_pfi.train_outlier_pct",
+          "value": 3.8
+        }
+      },
+      {
+        "key": "predict_test_outlier_pct",
+        "level": "info",
+        "message": "ROBERT reported test_outlier_pct = 0.0.",
+        "evidence": {
+          "source": "predict.no_pfi.test_outlier_pct",
+          "value": 0.0
+        }
+      }
+    ],
+    "pfi": [
+      {
+        "key": "verify_y_mean",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: y_mean -> PASSED",
+        "evidence": {
+          "source": "verify.pfi.test_results",
+          "test": "y_mean",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_y_shuffle",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: y_shuffle -> PASSED",
+        "evidence": {
+          "source": "verify.pfi.test_results",
+          "test": "y_shuffle",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_onehot",
+        "level": "PASSED",
+        "message": "ROBERT VERIFY: onehot -> PASSED",
+        "evidence": {
+          "source": "verify.pfi.test_results",
+          "test": "onehot",
+          "result": "PASSED"
+        }
+      },
+      {
+        "key": "verify_failed_tests",
+        "level": "info",
+        "message": "ROBERT reported failed_tests = 0.",
+        "evidence": {
+          "source": "verify.pfi.failed_tests",
+          "value": 0
+        }
+      },
+      {
+        "key": "verify_unclear_tests",
+        "level": "info",
+        "message": "ROBERT reported unclear_tests = 0.",
+        "evidence": {
+          "source": "verify.pfi.unclear_tests",
+          "value": 0
+        }
+      },
+      {
+        "key": "verify_passed_tests",
+        "level": "info",
+        "message": "ROBERT reported passed_tests = 3.",
+        "evidence": {
+          "source": "verify.pfi.passed_tests",
+          "value": 3
+        }
+      },
+      {
+        "key": "verify_flawed_mod_score",
+        "level": "info",
+        "message": "ROBERT reported flawed_mod_score = 0.",
+        "evidence": {
+          "source": "verify.pfi.flawed_mod_score",
+          "value": 0
+        }
+      },
+      {
+        "key": "predict_n_train",
+        "level": "info",
+        "message": "ROBERT reported n_train = 106.",
+        "evidence": {
+          "source": "predict.pfi.n_train",
+          "value": 106
+        }
+      },
+      {
+        "key": "predict_n_test",
+        "level": "info",
+        "message": "ROBERT reported n_test = 27.",
+        "evidence": {
+          "source": "predict.pfi.n_test",
+          "value": 27
+        }
+      },
+      {
+        "key": "predict_n_descriptors",
+        "level": "info",
+        "message": "ROBERT reported n_descriptors = 2.",
+        "evidence": {
+          "source": "predict.pfi.n_descriptors",
+          "value": 2
+        }
+      },
+      {
+        "key": "predict_points_descp_ratio",
+        "level": "info",
+        "message": "ROBERT reported points_descp_ratio = 106:2.",
+        "evidence": {
+          "source": "predict.pfi.points_descp_ratio",
+          "value": "106:2"
+        }
+      },
+      {
+        "key": "predict_train_outlier_pct",
+        "level": "info",
+        "message": "ROBERT reported train_outlier_pct = 4.7.",
+        "evidence": {
+          "source": "predict.pfi.train_outlier_pct",
+          "value": 4.7
+        }
+      },
+      {
+        "key": "predict_test_outlier_pct",
+        "level": "info",
+        "message": "ROBERT reported test_outlier_pct = 0.0.",
+        "evidence": {
+          "source": "predict.pfi.test_outlier_pct",
+          "value": 0.0
+        }
+      }
+    ],
+    "global": [
+      {
+        "key": "parser_warnings_present",
+        "level": "info",
+        "message": "Extractor reported parser warnings; cite evidence carefully.",
+        "evidence": {
+          "source": "parser_warnings",
+          "value": [
+            "ROBERT score not found in available .dat files for this run; score may only be present in ROBERT_report.pdf."
+          ]
+        }
+      }
+    ]
+  },
+  "llm_context": {
+    "prompt_intent": "Use ROBERT outputs as authority. Explain implications and next checks without inventing new score systems.",
+    "report_view_mode": "User may view PDF while LLM uses extracted ROBERT context.",
+    "source_policy": {
+      "pdf_to_llm": false,
+      "raw_text_context": true,
+      "image_context": true
+    },
+    "citation_fields": [
+      "predict.no_pfi",
+      "predict.pfi",
+      "verify.no_pfi",
+      "verify.pfi",
+      "curate",
+      "score"
+    ]
+  },
+  "derived_values": {
+    "convenience_only": true,
+    "items": {
+      "no_pfi": {
+        "train_to_descriptor_ratio": {
+          "value": 35.333,
+          "from": "predict.no_pfi.points_descp_ratio",
+          "label": "derived convenience value"
+        }
+      },
+      "pfi": {
+        "train_to_descriptor_ratio": {
+          "value": 53.0,
+          "from": "predict.pfi.points_descp_ratio",
+          "label": "derived convenience value"
+        }
+      }
+    }
+  },
+  "notes": [
+    "ROBERT score not yet populated in run_context.json for this run. Use ROBERT report outputs as authoritative source when available."
+  ]
+}
