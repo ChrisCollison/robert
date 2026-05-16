@@ -77,28 +77,34 @@ def create_document_panel() -> dbc.Col:
     return dbc.Col(
         [
             html.H5("Diagnostic Summary", className="mb-3"),
+            html.P(
+                "Use metrics and evidence images below to interpret what drove the score.",
+                className="text-muted mb-3",
+            ),
             html.Div(
                 id="document-content",
                 className="document-viewer",
                 style={
                     "overflow-y": "auto",
-                    "max-height": "80vh",
-                    "padding": "15px",
+                    "max-height": "82vh",
+                    "padding": "20px",
                     "border": "1px solid #ddd",
                     "border-radius": "4px",
-                    "background-color": "#f8f9fa",
+                    "background-color": "#ffffff",
+                    "font-size": "0.97rem",
+                    "line-height": "1.55",
                 },
                 children=html.P("Select a run to view diagnostics.", className="text-muted"),
             ),
         ],
-        md=6,
+        md=7,
         className="pe-2",
     )
 
 
 def create_chat_panel() -> dbc.Col:
     """
-    Create right-side chat panel (Phase 2 placeholder).
+    Create right-side chat panel.
     
     Returns:
         dbc.Col with chat interface placeholder
@@ -119,7 +125,7 @@ def create_chat_panel() -> dbc.Col:
                     "margin-bottom": "15px",
                 },
                 children=html.P(
-                    "Chat functionality coming in Phase 2.",
+                    "Ask a question about why this run got its score.",
                     className="text-muted",
                 ),
             ),
@@ -129,23 +135,23 @@ def create_chat_panel() -> dbc.Col:
                         id="chat-input",
                         placeholder="Ask a question about your results...",
                         type="text",
-                        disabled=True,
+                        disabled=False,
                     ),
                     dbc.Button(
                         "Send",
                         id="send-button",
                         color="primary",
-                        disabled=True,
+                        disabled=False,
                     ),
                 ],
                 className="mb-2",
             ),
             html.Small(
-                "Chat will be available after Phase 2 implementation.",
+                "Heuristics-first answers are enabled. LLM fallback remains optional.",
                 className="text-muted",
             ),
         ],
-        md=6,
+        md=5,
         className="ps-2",
     )
 
@@ -183,6 +189,7 @@ def create_main_layout(run_options: List[Dict[str, str]]) -> html.Div:
             # Store for run context (Phase 2)
             dcc.Store(id="run-context-store"),
             dcc.Store(id="diagnosis-store"),
+            dcc.Store(id="chat-history-store", data=[]),
         ],
         className="min-vh-100",
     )

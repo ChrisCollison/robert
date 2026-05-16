@@ -15,11 +15,11 @@ from pathlib import Path
 # Ensure we can import UI modules
 ui_path = Path(__file__).parent / "agent" / "ui"
 if ui_path.exists():
-    sys.path.insert(0, str(ui_path.parent))
+    sys.path.insert(0, str(ui_path))
 
 # Import and run app
 try:
-    from ui.app import main
+    from app import main
     main()
 except ImportError as e:
     print(f"Error: Could not import UI modules: {e}")

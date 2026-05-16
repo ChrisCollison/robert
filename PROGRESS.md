@@ -211,6 +211,75 @@ This notebook:
 
 ---
 
+## Phase 6 — UI Readability Execution Start (2026-05-16)
+
+**Goal:** Make the diagnostics panel readable and evidence-driven before enabling API-backed chat.
+
+**What was done:**
+
+- Added an explicit mandatory plan-approval checkpoint to governance in `AGENTS.md`:
+  - plan must be presented,
+  - user approval must be received,
+  - only then implementation begins.
+- Fixed UI launch stability for root-level startup (`start_ui.py`) and script import paths (`agent/ui/callbacks.py`).
+- Updated run discovery/loader behavior to match normalized archive structure:
+  - context from run root or `llm_run_bundle/`,
+  - diagnosis files from run root with legacy fallback.
+- Reworked document rendering in UI callbacks to use structured Dash components instead of literal HTML strings:
+  - metrics table,
+  - markdown diagnosis narrative,
+  - evidence image cards.
+- Expanded metrics extraction for the interface to show core No PFI/PFI model and VERIFY evidence in one view.
+- Added first-pass evidence image display using already-generated artifact image files from run outputs.
+
+**Current status:**
+
+- UI now starts and discovers archived runs.
+- Diagnostic content is now rendered in structured form (not escaped HTML text).
+- Evidence images are wired for display if run artifacts are present.
+
+**Immediate next step:**
+
+- Add severity-oriented styling for observations and execute readability smoke tests across both available runs.
+
+---
+
+## Phase 7 — Severity Styling + Heuristics-First Chat (2026-05-16)
+
+**Goal:** Start Phase 2A implementation while preserving cost-control policy (deterministic answers first, no mandatory API usage).
+
+**What was done:**
+
+- Added structured observation rendering with explicit severity badges in the diagnostics panel:
+  - `PASSED` -> success,
+  - `info` -> neutral,
+  - `warning` -> warning,
+  - `failed` -> danger.
+- Enabled the chat panel input/send flow and wired callback handling for user messages.
+- Implemented a deterministic heuristics-first responder in `agent/ui/chat.py` for common questions:
+  - why score,
+  - CV/test gap,
+  - VERIFY status,
+  - descriptors/features,
+  - outliers,
+  - warnings/missing evidence.
+- Added explicit source tagging for assistant responses in UI:
+  - `Heuristic`,
+  - `Fallback Disabled`,
+  - `No API Key`.
+- Live-tested the updated app behavior in local Dash run:
+  - run loads,
+  - severity observations render,
+  - heuristic response generated without API key.
+
+**Current status:**
+
+- Phase 1B semantic styling item is implemented.
+- Phase 2A core heuristics routing is implemented.
+- Full two-run smoke checklist and robustness/classification validation remain pending.
+
+---
+
 ## Architecture Summary
 
 ```

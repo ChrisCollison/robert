@@ -39,3 +39,35 @@ Purpose
 - Implemented deterministic score-component decomposition aligned to `robert/report_utils.py` thresholds for regression and classification branches.
 - Implemented evidence-linked diagnostic flags for CV/test quality, VERIFY failures, outlier burden, quartile imbalance, and evidence gaps.
 - Added artifact writing for per-run outputs: `diagnosis.json` and `diagnosis_summary.md`.
+
+## 2026-05-16
+
+### Governance enforcement update
+- Updated `AGENTS.md` with a mandatory implementation checkpoint:
+	1) present plan,
+	2) get explicit user approval,
+	3) execute only after approval.
+
+### UI startup and run discovery fixes
+- Fixed `start_ui.py` import pathing so project-root launch works.
+- Updated `agent/ui/callbacks.py` imports for script-compatible execution.
+- Updated `agent/ui/utils.py` run discovery for normalized archive layout (`run_context.json` at run root or bundle fallback).
+
+### UI readability implementation (Phase 1B start)
+- Reworked document callback rendering to structured Dash components:
+	- metrics table,
+	- markdown diagnosis narrative,
+	- evidence images section.
+- Expanded metrics extraction in `agent/ui/utils.py` to include No PFI/PFI + VERIFY signals.
+- Added artifact image discovery and in-memory image rendering for user-interrogable evidence cards.
+- Improved left-panel readability/layout in `agent/ui/components.py`.
+
+### UI readability + heuristics chat implementation (Phase 1B/2A)
+- Added severity-styled evidence-linked observation rendering in `agent/ui/callbacks.py` using PASSED/info/warning/failure badges.
+- Enabled interactive chat controls in `agent/ui/components.py` and added persistent chat state storage.
+- Implemented deterministic heuristics-first FAQ routing in `agent/ui/chat.py` grounded in `run_context.json` + `diagnosis.json` evidence.
+- Added response-source labeling in chat UI (`Heuristic`, `Fallback Disabled`, `No API Key`) to make API usage status explicit.
+- Live-validated updated UI behavior on local Dash server:
+	- run dropdown loads archived runs,
+	- diagnostics panel renders metrics + severity observations,
+	- chat returns heuristic answer for “Why did I get this ROBERT score?” without API key usage.

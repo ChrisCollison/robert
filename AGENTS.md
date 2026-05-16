@@ -61,6 +61,15 @@ Before modifying code, always propose a short plan that includes:
 4. risks,
 5. how to test the change.
 
+## Mandatory Execution Checkpoint
+
+Before any implementation work begins, the agent must:
+1. present the plan to the user,
+2. receive explicit user approval,
+3. only then execute edits or commands.
+
+This applies to code, notebooks, scripts, and documentation updates.
+
 Do not make broad edits. Prefer small, reversible changes.
 
 Do not refactor unrelated code.

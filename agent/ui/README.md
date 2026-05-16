@@ -5,7 +5,7 @@
 This is a local browser-based interface for displaying ROBERT diagnostic output. The app runs on your machine (no external servers) and provides:
 
 - **Left panel**: ROBERT diagnostic output (markdown, HTML, structured data)
-- **Right panel**: Chat interface for asking questions about your results
+- **Right panel**: Heuristics-first chat interface for asking questions about your results
 - **Security**: Your API key stays on your machine; never exposed to the browser
 
 ## Quick Start
@@ -48,7 +48,11 @@ The app will open in your browser at `http://localhost:8050`.
 1. **Select a run**: Use the dropdown to choose a ROBERT diagnostic run
 2. **View diagnostics**: Left panel displays the diagnostic summary and metrics
 3. **Ask questions**: Type a question in the chat box on the right
-4. **Get answers**: Chat uses your API key to answer questions about the displayed results
+4. **Get answers**: Deterministic FAQ heuristics answer common questions from extracted evidence
+
+Current chat status:
+- Heuristics-first responses are implemented and run without API calls
+- Optional LLM fallback is not yet enabled in this build
 
 ## Configuration
 
@@ -67,7 +71,7 @@ Your API key is **NOT**:
 
 ### Supported LLM Providers
 
-Currently configured for OpenAI API. To use other providers, modify `chat.py` accordingly.
+LLM fallback is planned but currently disabled. API key handling remains in place for future fallback enablement.
 
 ## Development
 

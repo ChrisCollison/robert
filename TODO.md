@@ -6,6 +6,31 @@ Purpose
 
 Updated
 - 2026-05-15 (Unified snapshot across validation + UI tracks)
+- 2026-05-16 (Readability + FAQ-first execution plan approved)
+
+## Approved Near-Term Plan (2026-05-16)
+
+Execution Policy
+- [x] Store and enforce plan-before-execution checkpoint in `AGENTS.md`.
+- [ ] Keep implementation sequence gated by explicit user approval before each new phase.
+
+Phase 1B — Diagnostic Readability (In Progress)
+- [x] Fix run discovery and diagnosis loading for normalized run archives.
+- [x] Render diagnosis summary as structured markdown in the UI (instead of escaped HTML text blocks).
+- [x] Expand metrics display with key PREDICT/VERIFY values for both No PFI and PFI variants.
+- [x] Add evidence image section that surfaces existing run artifact images for interpretation.
+- [x] Improve semantic styling for observation severity (PASSED/info/warning/failure badges).
+- [ ] Run full UI readability smoke test on both available runs and log outcomes.
+
+Phase 2A — FAQ / Heuristics First (Next)
+- [x] Implement deterministic FAQ response layer grounded in `run_context.json` + `diagnosis.json`.
+- [x] Route chat requests to heuristics first and avoid API calls when a rule answer exists.
+- [x] Add visibility in UI indicating whether response came from heuristic vs LLM fallback.
+
+Phase 2B — OpenAI Fallback (After 2A)
+- [ ] Add OpenAI fallback only for unanswered heuristic questions.
+- [ ] Add key-setup gating and security checks before first API call.
+- [ ] Track query counts/cost mode in UI logs for budget awareness.
 
 ## Unified Snapshot (2026-05-15)
 
