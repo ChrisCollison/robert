@@ -59,9 +59,9 @@ def _render_observations(diagnosis_json: Dict[str, Any]) -> html.Div:
                 html.Div(
                     [
                         _severity_badge(level),
-                        html.Span(message),
+                        html.Span(message, className="flex-grow-1"),
                     ],
-                    className="mb-2",
+                    className="mb-2 d-flex align-items-start gap-2",
                 )
             )
 
@@ -97,6 +97,7 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
 
         badge_text = {
             "heuristic": "Heuristic",
+            "openai": "OpenAI",
             "fallback-disabled": "Fallback Disabled",
             "no-api-key": "No API Key",
         }.get(source, "Assistant")

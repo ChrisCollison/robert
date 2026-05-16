@@ -1,9 +1,45 @@
 """Chat helpers for heuristics-first responses and optional LLM fallback."""
 
 import logging
+import os
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
+
+QUERY_COUNTS = {
+    "heuristic": 0,
+    "openai": 0,
+    "openai_unavailable": 0,
+    "no_api_key": 0,
+}
+
+
+def _log_query_route(route: str) -> None:
+    QUERY_COUNTS[route] = QUERY_COUNTS.get(route, 0) + 1
+    logger.info("Chat route=%s count=%s", route, QUERY_COUNTS[route])
+
+
+def _format_diagnostic_context(diagnostic_context: Dict[str, Any]) -> str:
+    if not isinstance(diagnostic_context, dict):
+        return ""
+
+    parts = []
+    score = diagnostic_context.get("score", {})
+    predict = diagnostic_context.get("predict", {})
+    verify = diagnostic_context.get("verify", {})
+
+    if isinstance(score, dict):
+        parts.append(f"ROBERT score fields: {score}")
+    if isinstance(predict, dict):
+        parts.append(f"Predict summary: {predict}")
+    if isinstance(verify, dict):
+        parts.append(f"VERIFY summary: {verify}")
+
+    parser_warnings = diagnostic_context.get("parser_warnings", [])
+    if parser_warnings:
+        parts.append(f"Parser warnings: {parser_warnings}")
+
+    return "\n\n".join(parts)
 
 
 def call_llm_api(
@@ -31,8 +67,38 @@ def call_llm_api(
         - API key is passed server-side only; never exposed to browser
         - Errors are caught and returned as user-friendly messages
     """
-    # LLM fallback is optional and not enabled in this phase.
-    raise NotImplementedError("LLM fallback is not enabled in this build")
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("OpenAI package not installed; fallback remains unavailable")
+        return None
+
+    model_name = os.getenv("ROBERT_OPENAI_MODEL", "gpt-4o-mini")
+    max_tokens = int(os.getenv("ROBERT_OPENAI_MAX_TOKENS", "350"))
+
+    client = OpenAI(api_key=api_key)
+    system_prompt = build_system_prompt(diagnostic_context)
+
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_question},
+            ],
+            temperature=0.2,
+            max_tokens=max_tokens,
+        )
+    except Exception as exc:
+        logger.warning("OpenAI fallback request failed: %s", exc)
+        return None
+
+    choice = response.choices[0] if response.choices else None
+    message = getattr(choice, "message", None) if choice else None
+    content = getattr(message, "content", None) if message else None
+    if content and str(content).strip():
+        return str(content).strip()
+    return None
 
 
 def build_system_prompt(diagnostic_context: Dict[str, Any]) -> str:
@@ -56,8 +122,14 @@ def build_system_prompt(diagnostic_context: Dict[str, Any]) -> str:
          
          Provide a helpful, evidence-based answer..."
     """
-    # LLM fallback is optional and not enabled in this phase.
-    raise NotImplementedError("LLM fallback is not enabled in this build")
+    evidence_text = _format_diagnostic_context(diagnostic_context)
+    return (
+        "You are explaining a ROBERT diagnostic run. "
+        "Use only the provided extracted evidence. "
+        "Do not invent metrics, descriptor meanings, or score components. "
+        "If evidence is missing, say so explicitly.\n\n"
+        f"Extracted evidence:\n{evidence_text}"
+    )
 
 
 def format_chat_message(role: str, content: str, source: str = "assistant") -> Dict[str, str]:
@@ -194,24 +266,31 @@ def answer_question(
     """
     response = heuristic_answer(user_question, run_context)
     if response:
+        _log_query_route("heuristic")
         return {"source": "heuristic", "content": response}
 
-    # Explicitly avoid API use unless a real fallback implementation exists.
     if api_key:
+        fallback_response = call_llm_api(api_key, user_question, run_context or {})
+        if fallback_response:
+            _log_query_route("openai")
+            return {"source": "openai", "content": fallback_response}
+
+        _log_query_route("openai_unavailable")
         return {
             "source": "fallback-disabled",
             "content": (
-                "This question did not match a deterministic FAQ rule yet. "
-                "LLM fallback is intentionally disabled in this build. "
+                "This question did not match a deterministic FAQ rule. "
+                "OpenAI fallback was attempted but is unavailable in this environment or failed to return a response. "
                 "Please ask about score reason, CV/test gap, VERIFY status, descriptors, outliers, or warnings."
             ),
         }
 
+    _log_query_route("no_api_key")
     return {
         "source": "no-api-key",
         "content": (
             "This question did not match a deterministic FAQ rule. "
-            "Set ROBERT_CHAT_API_KEY and enable fallback in a later phase, "
+            "Set ROBERT_CHAT_API_KEY to enable OpenAI fallback, "
             "or ask a supported question about score reason, CV/test gap, VERIFY tests, descriptors, outliers, or warnings."
         ),
     }

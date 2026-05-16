@@ -52,7 +52,7 @@ The app will open in your browser at `http://localhost:8050`.
 
 Current chat status:
 - Heuristics-first responses are implemented and run without API calls
-- Optional LLM fallback is not yet enabled in this build
+- Optional OpenAI fallback is enabled for unanswered heuristic questions when `ROBERT_CHAT_API_KEY` is configured and the `openai` package is installed
 
 ## Configuration
 
@@ -71,7 +71,14 @@ Your API key is **NOT**:
 
 ### Supported LLM Providers
 
-LLM fallback is planned but currently disabled. API key handling remains in place for future fallback enablement.
+The current fallback path uses the OpenAI Python client with server-side key handling only.
+
+Optional environment variables:
+
+- `ROBERT_OPENAI_MODEL` defaults to `gpt-4o-mini`
+- `ROBERT_OPENAI_MAX_TOKENS` defaults to `350`
+
+If `openai` is not installed, the UI still starts and the chat returns a clear fallback-unavailable message.
 
 ## Development
 

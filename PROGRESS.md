@@ -316,6 +316,29 @@ This notebook:
 
 ---
 
+## Phase 9 — OpenAI Fallback Implementation (2026-05-16)
+
+**Goal:** Keep the heuristics-first experience intact while enabling a real, optional OpenAI fallback for unsupported questions.
+
+**What was done:**
+
+- Wired `agent/ui/chat.py` to call OpenAI only after heuristic matching fails and an API key is present.
+- Added lazy import handling so missing `openai` does not break app startup.
+- Added route counters/logging for heuristic, OpenAI, no-key, and unavailable-fallback paths.
+- Added OpenAI source labeling to the chat UI so responses remain auditable.
+- Updated UI docs and dependency list to reflect the new fallback behavior and environment variables.
+
+**Validation:**
+
+- Python syntax checks passed for the touched UI modules.
+- Runtime routing check confirmed heuristic path, no-key path, and fallback-disabled behavior.
+
+**Residual note:**
+
+- A real OpenAI API key is still required to fully exercise the OpenAI response path end-to-end.
+
+---
+
 ## Architecture Summary
 
 ```

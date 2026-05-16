@@ -93,3 +93,11 @@ Purpose
 - Added classification validation report: `agent/validation_classification_report_2026-05-16.md`.
 - Created an intentionally incomplete run (`PREDICT` only) at `agent/run_archive/20260516_151123__TOF_class_incomplete` and validated null-safe extractor/diagnosis behavior.
 - Added robustness validation report: `agent/validation_robustness_report_2026-05-16.md`.
+
+### OpenAI fallback implementation
+- Enabled optional OpenAI fallback in `agent/ui/chat.py` behind heuristic-first routing.
+- Added lazy import handling so the UI still starts when `openai` is unavailable.
+- Added explicit route logging for `heuristic`, `openai`, `openai_unavailable`, and `no_api_key` chat paths.
+- Added OpenAI source labeling in the chat UI so assistant responses can be distinguished from heuristic answers.
+- Updated `requirements_ui.txt` to include `openai` and `python-dotenv` for the fallback phase.
+- Updated `agent/ui/README.md` with the fallback behavior and optional environment variables `ROBERT_OPENAI_MODEL` and `ROBERT_OPENAI_MAX_TOKENS`.

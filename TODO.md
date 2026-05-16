@@ -28,9 +28,9 @@ Phase 2A — FAQ / Heuristics First (Next)
 - [x] Add visibility in UI indicating whether response came from heuristic vs LLM fallback.
 
 Phase 2B — OpenAI Fallback (After 2A)
-- [ ] Add OpenAI fallback only for unanswered heuristic questions.
-- [ ] Add key-setup gating and security checks before first API call.
-- [ ] Track query counts/cost mode in UI logs for budget awareness.
+- [x] Add OpenAI fallback only for unanswered heuristic questions.
+- [x] Add key-setup gating and security checks before first API call.
+- [x] Track query counts/cost mode in UI logs for budget awareness.
 
 ## Unified Snapshot (2026-05-15)
 
@@ -43,7 +43,7 @@ Current Reality
 - Main gap is end-to-end validation evidence across run types and a single source of current priorities.
 
 Track A: Validation and Evidence Quality (Primary)
-- [ ] Run full regression validation pass on latest archived run and log outcomes.
+- [x] Run full regression validation pass on latest archived run and log outcomes.
 - [x] Run full classification validation pass (wrapper -> extractor -> diagnosis) and log outcomes (`agent/validation_classification_report_2026-05-16.md`).
 - [x] Run incomplete/missing-file robustness pass and confirm null-safe behavior + warnings (`agent/validation_robustness_report_2026-05-16.md`).
 - [ ] Compare diagnosis outputs with ROBERT report expectations for at least one run.
