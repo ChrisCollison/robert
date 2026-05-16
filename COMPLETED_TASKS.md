@@ -71,3 +71,12 @@ Purpose
 	- run dropdown loads archived runs,
 	- diagnostics panel renders metrics + severity observations,
 	- chat returns heuristic answer for “Why did I get this ROBERT score?” without API key usage.
+
+### Phase 1B smoke validation execution
+- Executed full smoke validation on both available archived runs:
+	- `20260515_173258__Hvapor`
+	- `20260513_160812__Hvapor`
+- Confirmed structured rendering for metrics, observations, diagnosis narrative, and evidence image updates after run switch.
+- Identified and fixed one heuristics intent gap (`verification tests` phrasing) in `agent/ui/chat.py`.
+- Re-validated that `Did any verification tests fail?` now routes to deterministic `Heuristic` response on both runs.
+- Added formal report: `agent/ui/PHASE1B_SMOKE_TEST_2026-05-16.md`.

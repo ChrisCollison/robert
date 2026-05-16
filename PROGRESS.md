@@ -276,7 +276,14 @@ This notebook:
 
 - Phase 1B semantic styling item is implemented.
 - Phase 2A core heuristics routing is implemented.
-- Full two-run smoke checklist and robustness/classification validation remain pending.
+- Full two-run smoke checklist is now completed (see `agent/ui/PHASE1B_SMOKE_TEST_2026-05-16.md`).
+- Robustness/classification validation remains pending.
+
+**Delta from smoke execution:**
+
+- Both archived Hvapor runs passed readability checks for metrics, observations, narrative, and image evidence refresh on run switch.
+- One chat intent gap was found for phrasing `verification tests` and fixed in `agent/ui/chat.py`.
+- Re-test confirmed heuristic response source for `Did any verification tests fail?` on both runs.
 
 ---
 

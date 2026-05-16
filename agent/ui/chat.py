@@ -154,7 +154,7 @@ def heuristic_answer(user_question: str, run_context: Dict[str, Any]) -> Optiona
             "The CV and test metrics are close, so there is no strong evidence of split mismatch in this run."
         )
 
-    if "verify" in q or "failed" in q:
+    if "verify" in q or "verification" in q or ("test" in q and "fail" in q):
         return (
             f"VERIFY summary ({variant.upper()}): passed={verify['passed']}, "
             f"failed={verify['failed']}, unclear={verify['unclear']}."

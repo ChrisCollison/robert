@@ -20,7 +20,7 @@ Phase 1B — Diagnostic Readability (In Progress)
 - [x] Expand metrics display with key PREDICT/VERIFY values for both No PFI and PFI variants.
 - [x] Add evidence image section that surfaces existing run artifact images for interpretation.
 - [x] Improve semantic styling for observation severity (PASSED/info/warning/failure badges).
-- [ ] Run full UI readability smoke test on both available runs and log outcomes.
+- [x] Run full UI readability smoke test on both available runs and log outcomes (`agent/ui/PHASE1B_SMOKE_TEST_2026-05-16.md`).
 
 Phase 2A — FAQ / Heuristics First (Next)
 - [x] Implement deterministic FAQ response layer grounded in `run_context.json` + `diagnosis.json`.
