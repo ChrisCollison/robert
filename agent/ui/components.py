@@ -54,6 +54,23 @@ def create_header(run_options: List[Dict[str, str]]) -> dbc.Container:
                                 className="text-muted",
                                 children="API key: Not configured",
                             ),
+                            html.Br(),
+                            html.Div(
+                                [
+                                    dbc.Checklist(
+                                        id="local-rag-toggle",
+                                        options=[{"label": " Enable Local RAG retrieval", "value": "enabled"}],
+                                        value=["enabled"],
+                                        switch=True,
+                                        className="mt-2",
+                                    ),
+                                    html.Small(
+                                        id="local-rag-toggle-status",
+                                        className="text-muted",
+                                        children="Local RAG: Enabled (session)",
+                                    ),
+                                ]
+                            ),
                         ],
                         md=6,
                     ),
@@ -197,6 +214,7 @@ def create_main_layout(run_options: List[Dict[str, str]]) -> html.Div:
             dcc.Store(id="diagnosis-store"),
             dcc.Store(id="parity-store"),
             dcc.Store(id="chat-history-store", data=[]),
+            dcc.Store(id="local-rag-enabled-store", data=None),
         ],
         className="min-vh-100",
     )

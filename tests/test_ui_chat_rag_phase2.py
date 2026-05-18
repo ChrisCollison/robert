@@ -54,3 +54,29 @@ def test_answer_question_falls_back_when_local_index_missing(monkeypatch, tmp_pa
 
     assert result["source"] == "no-api-key"
     assert "did not match a deterministic faq rule" in result["content"].lower()
+
+
+def test_answer_question_respects_session_override_disable(monkeypatch, tmp_path: Path) -> None:
+    knowledge = tmp_path / "knowledge"
+    storage = tmp_path / "storage"
+    knowledge.mkdir(parents=True)
+
+    (knowledge / "chem.txt").write_text(
+        "Catalyst selectivity and adsorption descriptors are discussed here.",
+        encoding="utf-8",
+    )
+
+    build_local_index(knowledge_dir=knowledge, storage_dir=storage, chunk_size=30, chunk_overlap=5)
+
+    monkeypatch.setenv("ROBERT_ENABLE_LOCAL_RAG", "true")
+    monkeypatch.setenv("ROBERT_RAG_STORAGE_DIR", str(storage))
+
+    result = answer_question(
+        user_question="What is adsorption?",
+        run_context={"predict": {}, "verify": {}},
+        diagnosis_json={},
+        api_key=None,
+        use_local_rag=False,
+    )
+
+    assert result["source"] == "no-api-key"

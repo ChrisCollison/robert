@@ -79,9 +79,10 @@ def _local_index_stale_hint() -> Optional[str]:
     return None
 
 
-def _get_local_rag_context(user_question: str) -> Dict[str, Any]:
+def _get_local_rag_context(user_question: str, use_local_rag: Optional[bool] = None) -> Dict[str, Any]:
     """Retrieve local RAG chunks for a user question."""
-    if not _is_local_rag_enabled():
+    enabled = _is_local_rag_enabled() if use_local_rag is None else bool(use_local_rag)
+    if not enabled:
         return {"enabled": False, "results": [], "context": "", "error": None}
 
     try:
@@ -547,6 +548,7 @@ def answer_question(
     run_context: Dict[str, Any],
     diagnosis_json: Optional[Dict[str, Any]],
     api_key: Optional[str],
+    use_local_rag: Optional[bool] = None,
 ) -> Dict[str, str]:
     """
     Answer with heuristics first. If no match, return a controlled fallback message.
@@ -558,7 +560,7 @@ def answer_question(
         _log_query_route("heuristic")
         return {"source": "heuristic", "content": response, "tokens_input": 0, "tokens_output": 0, "cost_usd": 0.0}
 
-    rag_payload = _get_local_rag_context(user_question)
+    rag_payload = _get_local_rag_context(user_question, use_local_rag=use_local_rag)
     rag_context = rag_payload.get("context", "") if isinstance(rag_payload, dict) else ""
 
     local_response = _local_rag_response(rag_payload)

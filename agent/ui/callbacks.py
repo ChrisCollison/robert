@@ -306,6 +306,23 @@ def update_api_key_status(_) -> str:
 
 @callback(
     [
+        Output("local-rag-enabled-store", "data"),
+        Output("local-rag-toggle-status", "children"),
+        Output("local-rag-toggle-status", "className"),
+    ],
+    Input("local-rag-toggle", "value"),
+    prevent_initial_call=False,
+)
+def update_local_rag_toggle(toggle_values: List[str]) -> Tuple[bool, str, str]:
+    """Persist session-level local RAG preference from UI toggle."""
+    enabled = isinstance(toggle_values, list) and ("enabled" in toggle_values)
+    if enabled:
+        return True, "Local RAG: Enabled (session override)", "text-success"
+    return False, "Local RAG: Disabled (session override)", "text-muted"
+
+
+@callback(
+    [
         Output("chat-history-store", "data"),
         Output("chat-messages", "children"),
         Output("chat-input", "value"),
@@ -320,6 +337,7 @@ def update_api_key_status(_) -> str:
         State("run-context-store", "data"),
         State("diagnosis-store", "data"),
         State("parity-store", "data"),
+        State("local-rag-enabled-store", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -331,6 +349,7 @@ def handle_chat_message(
     run_context: Dict[str, Any],
     diagnosis_json: Dict[str, Any],
     parity_data: Dict[str, Any],
+    local_rag_enabled: bool,
 ):
     """Handle user chat message with heuristics-first routing."""
     _ = (send_clicks, n_submit)
@@ -363,7 +382,13 @@ def handle_chat_message(
         )
         return updated_history, _render_chat_history(updated_history), ""
 
-    result = answer_question(user_message, run_context, diagnosis_json, api_key)
+    result = answer_question(
+        user_message,
+        run_context,
+        diagnosis_json,
+        api_key,
+        use_local_rag=local_rag_enabled,
+    )
     reply = result.get("content", "No answer available.")
     if parity_status == "incomplete":
         reply = "Parity warning: this run has partial evidence coverage.\n\n" + reply

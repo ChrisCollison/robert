@@ -104,6 +104,10 @@ Optional local retrieval settings:
 - `ROBERT_RAG_STORAGE_DIR` defaults to `agent/ui/storage`.
 - `ROBERT_RAG_TOP_K` defaults to `3`.
 
+UI toggle:
+- The app header includes a session-level "Enable Local RAG retrieval" switch.
+- This switch overrides the environment default for the current app session only.
+
 ## Development
 
 ### Directory Structure
