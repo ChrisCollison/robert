@@ -2,7 +2,14 @@
 
 import logging
 import os
+import sys
 from typing import Optional, Dict, Any, List
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from llm_context import pack_evidence, TokenBudget
+from chat_prompts import format_system_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -137,18 +144,26 @@ def format_chat_message(
     content: str,
     source: str = "assistant",
     parity_status: Optional[str] = None,
-) -> Dict[str, str]:
+    tokens_input: int = 0,
+    tokens_output: int = 0,
+    cost_usd: float = 0.0,
+) -> Dict[str, Any]:
     """
     Format a single chat message (Phase 2).
     
     Args:
         role: "user" or "assistant"
         content: Message content
+        source: Message source (heuristic, openai, etc.)
+        parity_status: Parity verification status
+        tokens_input: Tokens used for input
+        tokens_output: Tokens used for output
+        cost_usd: Estimated USD cost
         
     Returns:
-        Dict with keys: role, content
+        Dict with keys: role, content, source, parity_status, tokens_input, tokens_output, cost_usd
     """
-    message = {"role": role, "content": content, "source": source}
+    message = {"role": role, "content": content, "source": source, "tokens_input": tokens_input, "tokens_output": tokens_output, "cost_usd": cost_usd}
     if parity_status:
         message["parity_status"] = parity_status
     return message
@@ -219,13 +234,9 @@ def heuristic_answer(user_question: str, run_context: Dict[str, Any]) -> Optiona
     parser_warnings = _global_warnings(run_context)
 
     if "why" in q and "score" in q:
-        return (
-            f"Using the {variant.upper()} variant as reference: CV/Test R2 is {m['r2_cv']} / {m['r2_test']} "
-            f"and CV/Test RMSE is {m['rmse_cv']} / {m['rmse_test']}. "
-            f"VERIFY checks show passed={verify['passed']}, failed={verify['failed']}, unclear={verify['unclear']}. "
-            "In this run, score limitations are more likely to come from data/representation constraints "
-            "than from a failed VERIFY sanity check."
-        )
+            # Defer to the richer diagnosis-backed answer when available;
+            # fallback below handles the case when diagnosis_json is absent.
+            return None
 
     if "cv" in q and "test" in q and ("gap" in q or "different" in q):
         return (
@@ -263,6 +274,163 @@ def heuristic_answer(user_question: str, run_context: Dict[str, Any]) -> Optiona
     return None
 
 
+def _interp_obs_for_variant(diagnosis_json: Dict[str, Any], variant: str) -> List[Dict[str, str]]:
+    """Return interpretation observations for the given variant."""
+    obs = diagnosis_json.get("observations", {}).get(variant, [])
+    return [ob for ob in obs if isinstance(ob, dict) and ob.get("key", "").startswith("interp_")]
+
+
+def heuristic_answer_from_diagnosis(
+    user_question: str,
+    run_context: Dict[str, Any],
+    diagnosis_json: Dict[str, Any],
+) -> Optional[str]:
+    """
+    Answer using interpretation observations from diagnosis_json when available.
+    Falls back to metric echoes when no interpretation observations exist.
+    """
+    if not user_question or not isinstance(diagnosis_json, dict):
+        return None
+
+    q = user_question.strip().lower()
+    variant = _best_variant(run_context)
+    m = _extract_metrics(run_context, variant)
+    verify = _verify_counts(run_context, variant)
+    pred_type = run_context.get("pred_type", "reg") if isinstance(run_context, dict) else "reg"
+
+    if "why" in q and "score" in q:
+        interp = _interp_obs_for_variant(diagnosis_json, variant)
+        warning_msgs = [ob["message"] for ob in interp if ob.get("level", "").upper() in ("WARNING", "FAILED")]
+        info_msgs = [ob["message"] for ob in interp if ob.get("level", "").upper() == "INFO"]
+
+        if pred_type == "clas":
+            metric_line = f"MCC CV/Test = {m['r2_cv']} / {m['r2_test']}"
+        else:
+            metric_line = f"R2 CV/Test = {m['r2_cv']} / {m['r2_test']}, RMSE CV/Test = {m['rmse_cv']} / {m['rmse_test']}"
+
+        verify_line = (
+            f"VERIFY ({variant.upper()}): {verify['passed']} passed, "
+            f"{verify['failed']} failed, {verify['unclear']} unclear."
+        )
+
+        if warning_msgs:
+            parts = [f"{metric_line}. {verify_line}"]
+            parts.append("Key findings from this run:")
+            parts.extend(f"• {msg}" for msg in warning_msgs[:3])
+            if info_msgs:
+                parts.extend(f"• {msg}" for msg in info_msgs[:1])
+            return "\n\n".join(parts)
+
+        # No warnings — model looks reasonable
+        return (
+            f"{metric_line}. {verify_line} "
+            "No major interpretation flags were raised. "
+            "The evidence is consistent with a model that is performing at its natural limit "
+            "given the dataset size and descriptors provided."
+        )
+
+    if ("cv" in q and "test" in q and ("gap" in q or "different" in q)) or "gap" in q:
+        interp = _interp_obs_for_variant(diagnosis_json, variant)
+        gap_obs = [ob for ob in interp if ob.get("key") in ("interp_cv_optimistic", "interp_test_better_than_cv")]
+        if gap_obs:
+            return gap_obs[0]["message"]
+        if pred_type == "clas":
+            return (
+                f"For {variant.upper()}, MCC CV = {m['r2_cv']}, MCC Test = {m['r2_test']}. "
+                "No notable gap was detected between CV and test performance."
+            )
+        return (
+            f"For {variant.upper()}, R2 CV/Test = {m['r2_cv']} / {m['r2_test']} and "
+            f"RMSE CV/Test = {m['rmse_cv']} / {m['rmse_test']}. "
+            "No notable gap was detected between CV and test performance."
+        )
+
+    if "descriptor" in q or "feature" in q:
+        interp = _interp_obs_for_variant(diagnosis_json, variant)
+        dom_obs = [ob for ob in interp if ob.get("key") == "interp_dominant_feature"]
+        corr_obs = [ob for ob in interp if ob.get("key") == "interp_descriptor_correlation"]
+        descriptors = ", ".join(str(d) for d in m["descriptors"]) if m["descriptors"] else "N/A"
+        base = (
+            f"{variant.upper()} uses {m['n_descriptors']} descriptors: {descriptors}. "
+            f"Train:descriptor ratio = {m['points_descp_ratio']}."
+        )
+        extras = []
+        if dom_obs:
+            extras.append(dom_obs[0]["message"])
+        if corr_obs:
+            extras.append(corr_obs[0]["message"])
+        if extras:
+            return base + "\n\n" + "\n\n".join(extras)
+        return base
+
+    return None
+
+
+def call_llm_api_with_budget(
+    api_key: str,
+    user_question: str,
+    run_context: dict,
+    diagnosis_json: dict,
+) -> Optional[Dict[str, Any]]:
+    """
+    Call OpenAI API with compact evidence packing and token tracking.
+    
+    Returns dict with 'content', 'source', 'tokens_input', 'tokens_output', 'cost_usd'
+    """
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("OpenAI package not installed; fallback remains unavailable")
+        return None
+    
+    # Pack evidence
+    budget = TokenBudget()
+    evidence_text, budget = pack_evidence(run_context, diagnosis_json, user_question, budget)
+    
+    # Get system prompt
+    model_name = os.getenv("ROBERT_OPENAI_MODEL", "gpt-4o-mini")
+    system_prompt = format_system_prompt(
+        evidence=evidence_text,
+        question=user_question,
+        use_kb=False,  # KB support added later
+    )
+    
+    # Call API
+    client = OpenAI(api_key=api_key)
+    
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_question},
+            ],
+            max_tokens=int(os.getenv("ROBERT_OPENAI_MAX_TOKENS", "350")),
+            temperature=0.7,
+        )
+        
+        answer = response.choices[0].message.content
+        
+        # Track token usage
+        if hasattr(response, 'usage'):
+            budget.total_input = response.usage.prompt_tokens
+            budget.total_output = response.usage.completion_tokens
+        else:
+            budget.compute_totals()
+        
+        return {
+            "content": answer,
+            "source": "openai",
+            "tokens_input": budget.total_input,
+            "tokens_output": budget.total_output,
+            "cost_usd": budget.cost_usd,
+        }
+    
+    except Exception as exc:
+        logger.warning("OpenAI request failed: %s", exc)
+        return None
+
+
 def answer_question(
     user_question: str,
     run_context: Dict[str, Any],
@@ -273,24 +441,29 @@ def answer_question(
     Answer with heuristics first. If no match, return a controlled fallback message.
     """
     response = heuristic_answer(user_question, run_context)
+    if response is None and isinstance(diagnosis_json, dict):
+        response = heuristic_answer_from_diagnosis(user_question, run_context, diagnosis_json)
     if response:
         _log_query_route("heuristic")
-        return {"source": "heuristic", "content": response}
+        return {"source": "heuristic", "content": response, "tokens_input": 0, "tokens_output": 0, "cost_usd": 0.0}
 
     if api_key:
-        fallback_response = call_llm_api(api_key, user_question, run_context or {})
-        if fallback_response:
+        result = call_llm_api_with_budget(api_key, user_question, run_context or {}, diagnosis_json or {})
+        if result:
             _log_query_route("openai")
-            return {"source": "openai", "content": fallback_response}
+            return result
 
         _log_query_route("openai_unavailable")
         return {
             "source": "fallback-disabled",
             "content": (
                 "This question did not match a deterministic FAQ rule. "
-                "OpenAI fallback was attempted but is unavailable in this environment or failed to return a response. "
+                "OpenAI fallback was attempted but is unavailable. "
                 "Please ask about score reason, CV/test gap, VERIFY status, descriptors, outliers, or warnings."
             ),
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
         }
 
     _log_query_route("no_api_key")
@@ -301,6 +474,9 @@ def answer_question(
             "Set ROBERT_CHAT_API_KEY to enable OpenAI fallback, "
             "or ask a supported question about score reason, CV/test gap, VERIFY tests, descriptors, outliers, or warnings."
         ),
+        "tokens_input": 0,
+        "tokens_output": 0,
+        "cost_usd": 0.0,
     }
 
 

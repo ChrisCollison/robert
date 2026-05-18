@@ -90,6 +90,9 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
         content = msg.get("content", "")
         source = msg.get("source", "assistant")
         parity_status = msg.get("parity_status", "")
+        tokens_in = msg.get("tokens_input", 0)
+        tokens_out = msg.get("tokens_output", 0)
+        cost_usd = msg.get("cost_usd", 0.0)
 
         if role == "user":
             blocks.append(
@@ -115,13 +118,25 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
             text, color = parity_map[parity_status]
             parity_badge = dbc.Badge(text, color=color, className="me-2")
 
+        # Token/cost footer (only show if tokens were used)
+        token_footer = None
+        if tokens_in > 0 or cost_usd > 0:
+            token_footer = html.Div(
+                f"Tokens: {tokens_in} in, {tokens_out} out | Est. cost: ${cost_usd:.4f}",
+                className="small text-muted mt-2",
+            )
+
+        alert_children = [
+            dbc.Badge(badge_text, color="info", className="me-2"),
+            parity_badge,
+            html.Span(content),
+        ]
+        if token_footer:
+            alert_children.append(token_footer)
+
         blocks.append(
             dbc.Alert(
-                [
-                    dbc.Badge(badge_text, color="info", className="me-2"),
-                    parity_badge,
-                    html.Span(content),
-                ],
+                alert_children,
                 color="primary",
                 className="mb-2",
             )
@@ -358,6 +373,9 @@ def handle_chat_message(
             reply,
             source=result.get("source", "assistant"),
             parity_status=parity_status,
+            tokens_input=result.get("tokens_input", 0),
+            tokens_output=result.get("tokens_output", 0),
+            cost_usd=result.get("cost_usd", 0.0),
         )
     )
 
