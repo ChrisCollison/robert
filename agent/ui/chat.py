@@ -28,6 +28,41 @@ QUERY_COUNTS = {
 }
 
 
+def _is_score_question(user_question: str) -> bool:
+    """Return True when the user is asking about score-level interpretation."""
+    q = (user_question or "").strip().lower()
+    return "score" in q or ("why" in q and ("model" in q or "result" in q))
+
+
+def _extract_robert_scores(
+    run_context: Dict[str, Any],
+    diagnosis_json: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Extract ROBERT score fields from run_context and diagnosis_json when available."""
+    score = run_context.get("score", {}) if isinstance(run_context, dict) else {}
+    if not isinstance(score, dict) or (score.get("no_pfi") is None and score.get("pfi") is None):
+        diag_score = diagnosis_json.get("robert_score", {}) if isinstance(diagnosis_json, dict) else {}
+        if isinstance(diag_score, dict):
+            score = diag_score
+
+    return {
+        "no_pfi": score.get("no_pfi") if isinstance(score, dict) else None,
+        "pfi": score.get("pfi") if isinstance(score, dict) else None,
+    }
+
+
+def _format_robert_score_line(scores: Dict[str, Any]) -> str:
+    """Format a single concise line for ROBERT score values."""
+    no_pfi = scores.get("no_pfi")
+    pfi = scores.get("pfi")
+    if no_pfi is not None or pfi is not None:
+        return f"ROBERT Score (No PFI / PFI): {no_pfi} / {pfi}."
+    return (
+        "ROBERT score is not present in the extracted run context for this run. "
+        "Run extraction/diagnosis again if you expect score fields to be populated."
+    )
+
+
 def _is_local_rag_enabled() -> bool:
     """Return whether local RAG retrieval should run for unmatched questions."""
     value = os.getenv("ROBERT_ENABLE_LOCAL_RAG", "true").strip().lower()
@@ -404,6 +439,7 @@ def heuristic_answer_from_diagnosis(
 
     if "why" in q and "score" in q:
         interp = _interp_obs_for_variant(diagnosis_json, variant)
+        score_line = _format_robert_score_line(_extract_robert_scores(run_context, diagnosis_json))
         warning_msgs = [ob["message"] for ob in interp if ob.get("level", "").upper() in ("WARNING", "FAILED")]
         info_msgs = [ob["message"] for ob in interp if ob.get("level", "").upper() == "INFO"]
 
@@ -418,7 +454,7 @@ def heuristic_answer_from_diagnosis(
         )
 
         if warning_msgs:
-            parts = [f"{metric_line}. {verify_line}"]
+            parts = [score_line, f"{metric_line}. {verify_line}"]
             parts.append("Key findings from this run:")
             parts.extend(f"• {msg}" for msg in warning_msgs[:3])
             if info_msgs:
@@ -427,7 +463,7 @@ def heuristic_answer_from_diagnosis(
 
         # No warnings — model looks reasonable
         return (
-            f"{metric_line}. {verify_line} "
+            f"{score_line} {metric_line}. {verify_line} "
             "No major interpretation flags were raised. "
             "The evidence is consistent with a model that is performing at its natural limit "
             "given the dataset size and descriptors provided."
@@ -556,7 +592,16 @@ def answer_question(
     response = heuristic_answer(user_question, run_context)
     if response is None and isinstance(diagnosis_json, dict):
         response = heuristic_answer_from_diagnosis(user_question, run_context, diagnosis_json)
+
+    # For score-oriented questions, try to attach local KB snippets even when heuristics answer.
+    rag_payload: Dict[str, Any] = {"enabled": False, "results": [], "context": "", "error": None}
+    if _is_score_question(user_question):
+        rag_payload = _get_local_rag_context(user_question, use_local_rag=use_local_rag)
+
     if response:
+        local_response = _local_rag_response(rag_payload)
+        if local_response:
+            response = f"{response}\n\nRelated local knowledge snippets:\n\n{local_response}"
         _log_query_route("heuristic")
         return {"source": "heuristic", "content": response, "tokens_input": 0, "tokens_output": 0, "cost_usd": 0.0}
 

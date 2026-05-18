@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "built_at": "2026-05-15T21:39:24Z",
+  "built_at": "2026-05-18T11:39:15Z",
   "source_run_dir": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/run_archive/20260515_173258__Hvapor",
   "source_of_truth": "ROBERT outputs",
   "policy": {
@@ -35,8 +35,92 @@
     ]
   },
   "score": {
-    "no_pfi": null,
-    "pfi": null
+    "no_pfi": 6,
+    "pfi": 8,
+    "no_pfi_components": {
+      "rmse_score": 0,
+      "cv_type": "10x 5-fold CV",
+      "points_descp_ratio": "106:3",
+      "rmse_cv": 5.7,
+      "r2_cv": 0.77,
+      "rmse_test": 5.5,
+      "r2_test": 0.78,
+      "y_range": 54.0,
+      "scaled_rmse_cv": 10.56,
+      "scaled_rmse_test": 10.19,
+      "cv_score_rmse": 1,
+      "test_score_rmse": 1,
+      "cv_penalty_r2": 0,
+      "test_penalty_r2": 0,
+      "cv_score_combined": 1,
+      "test_score_combined": 1,
+      "factor_scaled_rmse": 0.9649621212121211,
+      "diff_scaled_rmse_score": 2,
+      "cv_4sd": 2.04,
+      "cv_range_cov": 0.03777777777777778,
+      "cv_sd_score": 2,
+      "scaled_rmse_sorted": [
+        14.02,
+        9.85,
+        11.96,
+        9.24,
+        16.22
+      ],
+      "min_scaled_rmse": 9.24,
+      "max_scaled_rmse": 16.22,
+      "scaled_rmse_results_sorted": [
+        "fail",
+        "pass",
+        "fail",
+        "min",
+        "fail"
+      ],
+      "flawed_mod_score": 0,
+      "failed_tests": 0,
+      "sorted_cv_score": 0
+    },
+    "pfi_components": {
+      "rmse_score": 0,
+      "cv_type": "10x 5-fold CV",
+      "points_descp_ratio": "106:2",
+      "rmse_cv": 5.7,
+      "r2_cv": 0.77,
+      "rmse_test": 5.2,
+      "r2_test": 0.79,
+      "y_range": 54.0,
+      "scaled_rmse_cv": 10.56,
+      "scaled_rmse_test": 9.63,
+      "cv_score_rmse": 1,
+      "test_score_rmse": 2,
+      "cv_penalty_r2": 0,
+      "test_penalty_r2": 0,
+      "cv_score_combined": 1,
+      "test_score_combined": 2,
+      "factor_scaled_rmse": 0.9119318181818182,
+      "diff_scaled_rmse_score": 2,
+      "cv_4sd": 2.0,
+      "cv_range_cov": 0.037037037037037035,
+      "cv_sd_score": 2,
+      "scaled_rmse_sorted": [
+        14.72,
+        9.93,
+        11.91,
+        9.65,
+        16.43
+      ],
+      "min_scaled_rmse": 9.65,
+      "max_scaled_rmse": 16.43,
+      "scaled_rmse_results_sorted": [
+        "fail",
+        "pass",
+        "pass",
+        "min",
+        "fail"
+      ],
+      "flawed_mod_score": 0,
+      "failed_tests": 0,
+      "sorted_cv_score": 1
+    }
   },
   "predict": {
     "no_pfi": {

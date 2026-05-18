@@ -80,3 +80,62 @@ def test_answer_question_respects_session_override_disable(monkeypatch, tmp_path
     )
 
     assert result["source"] == "no-api-key"
+
+
+def test_score_question_includes_score_and_local_context(monkeypatch, tmp_path: Path) -> None:
+    knowledge = tmp_path / "knowledge"
+    storage = tmp_path / "storage"
+    knowledge.mkdir(parents=True)
+
+    (knowledge / "faq.md").write_text(
+        "A low ROBERT score often indicates data limitations, descriptor mismatch, or split difficulty.",
+        encoding="utf-8",
+    )
+
+    build_local_index(knowledge_dir=knowledge, storage_dir=storage, chunk_size=30, chunk_overlap=5)
+
+    monkeypatch.setenv("ROBERT_ENABLE_LOCAL_RAG", "true")
+    monkeypatch.setenv("ROBERT_RAG_STORAGE_DIR", str(storage))
+
+    run_context = {
+        "pred_type": "reg",
+        "score": {"no_pfi": 4.0, "pfi": 3.5},
+        "predict": {
+            "no_pfi": {
+                "r2_cv": 0.61,
+                "r2_test": 0.55,
+                "rmse_cv": 0.42,
+                "rmse_test": 0.48,
+                "n_train": 40,
+                "n_test": 10,
+                "n_descriptors": 12,
+                "descriptors": ["d1", "d2"],
+                "points_descp_ratio": "40:12",
+            },
+            "pfi": {"r2_test": 0.50},
+        },
+        "verify": {"no_pfi": {"passed_tests": 3, "failed_tests": 0, "unclear_tests": 0}},
+    }
+    diagnosis_json = {
+        "observations": {
+            "no_pfi": [
+                {
+                    "key": "interp_cv_optimistic",
+                    "level": "warning",
+                    "message": "CV appears optimistic relative to test performance.",
+                }
+            ]
+        }
+    }
+
+    result = answer_question(
+        user_question="Why did I get this score?",
+        run_context=run_context,
+        diagnosis_json=diagnosis_json,
+        api_key=None,
+    )
+
+    assert result["source"] == "heuristic"
+    assert "ROBERT Score (No PFI / PFI): 4.0 / 3.5" in result["content"]
+    assert "Related local knowledge snippets" in result["content"]
+    assert "faq.md" in result["content"]

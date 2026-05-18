@@ -94,6 +94,8 @@ def pack_evidence(
     
     lines.append(f"Dataset: {dataset_name}")
     lines.append(f"Type: {pred_type} (model: {ml_model})")
+    score = run_context.get("score", {}) if isinstance(run_context.get("score"), dict) else {}
+    lines.append(f"ROBERT Score (No PFI / PFI): {score.get('no_pfi')} / {score.get('pfi')}")
     lines.append("")
     
     # Metrics summary (pick best variant by test performance)

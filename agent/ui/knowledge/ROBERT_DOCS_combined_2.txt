@@ -1,0 +1,2447 @@
+--- Start of database.txt ---
+How to create a database — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](#)
+  + [CSV file](#csv-file)
+  + [Database generation using Excel](#database-generation-using-excel)
+  + [Selection of descriptors](#selection-of-descriptors)
+* [Data curation](curate.html)
+* [Screening of ML models](generate.html)
+* [New predictions and feature analysis](predict.html)
+* [Predictive ability tests](verify.html)
+* [From SMILES to predictors](aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* How to create a database
+* [View page source](../_sources/Modules/database.rst.txt)
+
+---
+
+How to create a database[](#how-to-create-a-database "Link to this heading")
+=============================================================================
+
+CSV file[](#csv-file "Link to this heading")
+---------------------------------------------
+
+A CSV file, known as a "comma-separated values" file, enables you to store data in a table-structured format.
+Data records are divided by line breaks (i.e., each data record starts a new line).
+
+Note
+
+Creating CSV files is most straightforward when using a spreadsheet application, such as Microsoft Excel.
+
+Database generation using Excel[](#database-generation-using-excel "Link to this heading")
+-------------------------------------------------------------------------------------------
+
+* **Step 1:** Open a new spreadsheet in Microsoft Excel. Any spreadsheet software can be employed to convert data to CSV files.
+
+**[![database1_fig](../_images/1.png)](../_images/1.png)**
+
+* **Step 2:** Specify the headers (one for the names of each data point, one for each descriptor, and one for the target values) in row 1 at the top of the spreadsheet. More information regarding the selection of appropriate descriptors is available in the following section.
+
+**[![database2_fig](../_images/2.png)](../_images/2.png)**
+
+* **Step 3:** Enter your data into the spreadsheet under each column as needed. For example, write the compound name in cell A2, the descriptor values in cells B2, C2 and D2, and the target values in cell E2.
+
+**[![database3_fig](../_images/3.png)](../_images/3.png)**
+
+* **Step 4:** Go to the "File" tab and select "Save As". Select "CSV" under the "Save as type" dropdown menu and input a title for your CSV file. Then, click the "Save" button to generate your CSV file.
+
+**[![database5_fig](../_images/5.png)](../_images/5.png)**
+
+Selection of descriptors[](#selection-of-descriptors "Link to this heading")
+-----------------------------------------------------------------------------
+
+In machine learning, a "descriptor" refers to a specific feature or property of the data used
+to describe or represent an entity. In the context of chemistry, descriptors are characteristics
+of molecules or complexes that are used to define their structures, behaviors, or other relevant
+attributes. There are no strict limitations in defining descriptors, but ideally, descriptors
+should encompass relevant properties that assist machine learning models in differentiating between
+compounds within the database. Descriptors can be specified using experimental measurements (i.e.,
+density, melting point, etc.) and theoretical methods (i.e., DFT properties, NBO charges, etc.).
+
+When creating a database, users have two approaches:
+
+**1. User-Defined Descriptors**
+  
+Users can utilize their own descriptors, whether obtained experimentally or through computational methods.
+
+**2. Automated: SMILES to Descriptors**
+  
+If users don't have pre-calculated descriptors, they can use the automatic generation of descriptors with the AQME module.
+
+**[![database6_fig](../_images/6.png)](../_images/6.png)**
+
+* **User-defined descriptors**
+
+If users want to use descriptors that have been measured or calculated before, they have
+to enter them manually into the database. Researchers can use experimental or
+theoretical descriptors, or a mix of both to define their problem. For example,
+in the article [J. Am. Chem. Soc. 2022, 144, 9586](https://pubs.acs.org/doi/10.1021/jacs.1c13397),
+the authors wanted to correlate the equilibrium energies (ΔG) obtained with 20 different solvents
+using a machine learning model.
+
+**[![database7_fig](../_images/7.png)](../_images/7.png)**
+
+In this case, the authors needed to differentiate the solvents using properties/descriptors
+(defining the problem). To achieve this, they constructed a set of 17 molecular descriptors that captured
+electronic and structural differences between the solvents. These descriptors included the
+dielectric constant (ε), the second COSMO σ-moment, which characterizes a molecule's overall electrostatic
+polarity (Sig2), and the McGowan molar volume (V). This is how the database was structured:
+
+**[![database8_fig](../_images/8.png)](../_images/8.png)**
+
+* **Automated: SMILES to descriptors**
+
+When users don't have previously measured/calculated descriptors, they can employ AQME to generate
+molecular and atomic descriptors. Let's consider the article
+[J. Chem. Inf. Comput. Sci. 2004, 44, 1000](https://pubs.acs.org/doi/10.1021/ci034243x),
+which includes a database with SMILES strings and aqueous solubility values in its electronic supporting
+information. A solubility predictor can be developed using this database, as it includes
+columns with the names of the molecules, SMILES strings of the molecules, and the property to be
+predicted (aqueous solubility in this case). The titles of the first two columns must be adjusted
+to "code\_name" and "SMILES", respectively. This is how the database would be structured:
+
+**[![database9_fig](../_images/9.png)](../_images/9.png)**
+
+ROBERT will then be executed with one command line (see the *From SMILES to predictors* section and the *Full workflow from SMILES* example),
+generating results like these:
+
+**[![database10_fig](../_images/10.png)](../_images/10.png)**
+
+[Previous](../Install/gui.html "Graphical User Interface (GUI): easyROB")
+[Next](curate.html "Data curation")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of database.txt ---
+
+--- Start of generate.txt ---
+Screening of ML models — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](database.html)
+* [Data curation](curate.html)
+* [Screening of ML models](#)
+  + [Overview of the GENERATE module](#overview-of-the-generate-module)
+  + [BO hyperoptimization](#bo-hyperoptimization)
+  + [Input required](#input-required)
+  + [Automated protocols](#automated-protocols)
+  + [Technical information](#technical-information)
+  + [Example](#example)
+* [New predictions and feature analysis](predict.html)
+* [Predictive ability tests](verify.html)
+* [From SMILES to predictors](aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Screening of ML models
+* [View page source](../_sources/Modules/generate.rst.txt)
+
+---
+
+Screening of ML models[](#screening-of-ml-models "Link to this heading")
+=========================================================================
+
+Overview of the GENERATE module[](#overview-of-the-generate-module "Link to this heading")
+-------------------------------------------------------------------------------------------
+
+**[![generate_fig](../_images/GENERATE.jpg)](../_images/GENERATE.jpg)**
+
+BO hyperoptimization[](#bo-hyperoptimization "Link to this heading")
+---------------------------------------------------------------------
+
+**[![bo_fig](../_images/BO.jpg)](../_images/BO.jpg)**
+
+Input required[](#input-required "Link to this heading")
+---------------------------------------------------------
+
+This module uses a curated CSV (preferrably coming from a CURATE job).
+
+Automated protocols[](#automated-protocols "Link to this heading")
+-------------------------------------------------------------------
+
+* Splits the dataset into training and test sets using various strategies (KN, RND, STRATIFIED, EVEN, EXTRA\_Q1, EXTRA\_Q5). By default, the "EVEN" strategy is used, which creates bins across the full y-value range and selects central points. For unbalanced data, a stratified approach is applied.
+* Hyperoptimizes multiple ML models using a Bayesian Optimization approach, employing an objective function that combines the error from a 10-times 5-fold CV and a sorted CV to minimize overfitting.
+* Filters off descriptors with low permutation feature importance (PFI). New models are generated parallely, (1) No PFI and (2) PFI-filtered models.
+* Creates a heatmap plot with different model types. One plot is generated for No PFI models and another for PFI-filtered models.
+* Selects and stores the best No PFI and PFI models.
+
+Technical information[](#technical-information "Link to this heading")
+-----------------------------------------------------------------------
+
+The GENERATE module performs an exploration of various ML algorithms. It uses built-in ML models from scikit-learn [1] or its code accelerator, scikit-learn-intelex. These models are hyperoptimized using Bayesian Optimization [2] to find their optimal parameters.
+
+The software automatically generates a heatmap displaying RMSE values obtained from hyperoptimized algorithms. Furthermore, it performs permutation feature importance (PFI) analysis to identify the most influential descriptors and generate new models with only those descriptors. Users have the flexibility to fine-tune the PFI filter threshold using the "PFI\_threshold" parameter. By default, this threshold removes features that contribute less than 4% to the model's R2. While this filter is activated by default, users can deactivate it by setting the "pfi\_filter" option to False.
+
+Users can choose between different modes for data splitting using the "split" option: (KN, RND, STRATIFIED, EVEN, EXTRA\_Q1, EXTRA\_Q5). The selection of ML algorithms during screening is tuned through the "model" parameter, offering a range of popular options such as Random Forests (RF), Multivariate Linear Models (MVL), Gradient Boosting (GB), Gaussian Process (GP), AdaBoost Regressor (AdaB), MLP Regressor Neural Network (NN), and Voting Regressor (VR).
+
+20% of the data is used as a test set before hyperoptimization. This algorithm ensures an even distribution of data points across the range of y values, facilitating a balanced evaluation of predictions across the low, mid, and high y-value ranges.
+
+This module is designed to handle both regression and classification problems, optimizing either the RMSE (regression) or MCC (classification) of the validation set during the hyperoptimization process. Users can adjust the error type for optimization with the "error\_type" keyword, which offers the following options: RMSE, MAE, and R2 for regression tasks, and Matthew's correlation coefficient (MCC), F1 score, and accuracy for classification tasks.
+
+* [1] [Scikit-learn: Machine Learning in Python](https://jmlr.csail.mit.edu/papers/v12/pedregosa11a.html)
+* [2] Bayesian Optimization: Open source constrained global optimization tool for Python <https://github.com/bayesian-optimization/BayesianOptimization>
+
+Example[](#example "Link to this heading")
+-------------------------------------------
+
+An example is available in **Examples/Use of individual modules**.
+
+[Previous](curate.html "Data curation")
+[Next](predict.html "New predictions and feature analysis")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of generate.txt ---
+
+--- Start of predict.txt ---
+New predictions and feature analysis — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](database.html)
+* [Data curation](curate.html)
+* [Screening of ML models](generate.html)
+* [New predictions and feature analysis](#)
+  + [Overview of the PREDICT module](#overview-of-the-predict-module)
+  + [Input required](#input-required)
+  + [Automated protocols](#automated-protocols)
+  + [Technical information](#technical-information)
+  + [Example](#example)
+* [Predictive ability tests](verify.html)
+* [From SMILES to predictors](aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* New predictions and feature analysis
+* [View page source](../_sources/Modules/predict.rst.txt)
+
+---
+
+New predictions and feature analysis[](#new-predictions-and-feature-analysis "Link to this heading")
+=====================================================================================================
+
+Overview of the PREDICT module[](#overview-of-the-predict-module "Link to this heading")
+-----------------------------------------------------------------------------------------
+
+**[![predict_fig](../_images/PREDICT.jpg)](../_images/PREDICT.jpg)**
+
+Input required[](#input-required "Link to this heading")
+---------------------------------------------------------
+
+This module uses a GENERATE folder created in a GENERATE job.
+
+Automated protocols[](#automated-protocols "Link to this heading")
+-------------------------------------------------------------------
+
+> * Calculates R2, MAE and RMSE (for regression) or accuracy, F1 score and MCC (for classification) for the 10x 5-fold CV (training+validation) and test sets of the best No PFI and PFI models found in a GENERATE job.
+> * Predicts values for the test set or an external test set (if any). If the measured y values are included in the external test set, the model metrics from the previous point will be included, otherwise only the predicted y values will be retrieved.
+> * Performs an outlier analysis.
+> * Performs a SHAP feature analysis.
+> * Performs a PFI feature analysis.
+
+Technical information[](#technical-information "Link to this heading")
+-----------------------------------------------------------------------
+
+The PREDICT module uses models obtained in the GENERATE module to compute various metrics, including R2, MAE, and RMSE (regression), and accuracy, F1 score, and MCC (classification). This module also enables predictions for an external test dataset, incorporating predictor metrics when measured y-values are available. In cases where measured y-values are absent, the module shows predicted y-values in the resulting PDF report and within the csv\_test folder created inside the PREDICT main folder.
+Furthermore, this module conducts feature importance analysis through PFI and SHAP methods, which analyze how descriptors impact model performance. The PREDICT module also identifies outliers by measuring the absolute errors between predicted and measured y values. The detection of outliers is based on the “t\_value” option, defaulted to two and measured in SD units. This default t-value identifies outliers in predictions exhibiting errors surpassing two SDs (approx. 5% of a normal population).
+
+Example[](#example "Link to this heading")
+-------------------------------------------
+
+An example is available in **Examples/Use of individual modules**.
+
+[Previous](generate.html "Screening of ML models")
+[Next](verify.html "Predictive ability tests")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of predict.txt ---
+
+--- Start of verify.txt ---
+Predictive ability tests — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](database.html)
+* [Data curation](curate.html)
+* [Screening of ML models](generate.html)
+* [New predictions and feature analysis](predict.html)
+* [Predictive ability tests](#)
+  + [Overview of the VERIFY module](#overview-of-the-verify-module)
+  + [Input required](#input-required)
+  + [Automated protocols](#automated-protocols)
+  + [Technical information](#technical-information)
+  + [Example](#example)
+* [From SMILES to predictors](aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Predictive ability tests
+* [View page source](../_sources/Modules/verify.rst.txt)
+
+---
+
+Predictive ability tests[](#predictive-ability-tests "Link to this heading")
+=============================================================================
+
+Overview of the VERIFY module[](#overview-of-the-verify-module "Link to this heading")
+---------------------------------------------------------------------------------------
+
+**[![verify_fig](../_images/VERIFY.jpg)](../_images/VERIFY.jpg)**
+
+Input required[](#input-required "Link to this heading")
+---------------------------------------------------------
+
+This module uses a GENERATE folder created in a GENERATE job.
+
+Automated protocols[](#automated-protocols "Link to this heading")
+-------------------------------------------------------------------
+
+* y-mean test: Calculates the accuracy of the model when all the predicted y values are fixed to the mean of the measured y values (straight line when plotting measured vs predicted y values).
+* y-shuffle test: Calculates the accuracy of the model after shuffling randomly all the measured y values.
+* onehot test: Calculates the accuracy of the model when replacing all descriptors for 0s and 1s. If the x value is 0, the value will be 0, otherwise it will be 1.
+
+Technical information[](#technical-information "Link to this heading")
+-----------------------------------------------------------------------
+
+The test-pass thresholds are 15% (for unclear results) and 30% (for passed tests), determined by the percentage of error difference (RMSE or MCC by default) relative to the original model.
+Lastly, the VERIFY module generates a bar plot summarizing the test outcomes. This visual representation distinguishes between passed, unclear and failed tests, using blue, yellow and red colors, respectively.
+
+Example[](#example "Link to this heading")
+-------------------------------------------
+
+An example is available in **Examples/Use of individual modules**.
+
+[Previous](predict.html "New predictions and feature analysis")
+[Next](aqme.html "From SMILES to predictors")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of verify.txt ---
+
+--- Start of repro.txt ---
+Reproducibility and Transparency — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](score.html)
+* [Reproducibility and Transparency](#)
+  + [Overview](#overview)
+  + [Reproducibility section](#reproducibility-section)
+  + [Transparency section](#transparency-section)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Reproducibility and Transparency
+* [View page source](../_sources/Report/repro.rst.txt)
+
+---
+
+Reproducibility and Transparency[](#reproducibility-and-transparency "Link to this heading")
+=============================================================================================
+
+Overview[](#overview "Link to this heading")
+---------------------------------------------
+
+ROBERT aims to improve the reproducibility and transparency of chemical machine learning protocols, addressing two long-standing concerns within the scientific community when publishing in peer-reviewed journals. Several authors have emphasized the critical necessity of establishing and enforcing standards in this regard since a significant proportion of publications are challenging or even impossible to replicate (see references below).
+
+The generated ROBERT\_report.pdf files include a **reproducibility section** that instructs authors on which files they should upload as supporting information. This section also provides other researchers with the precise programs, versions, and commands required to replicate the results. Additionally, there is a **transparency section** containing comprehensive information about the machine learning models used and other relevant details regarding ROBERT protocols.
+
+* [Best practices in ML for chemistry](https://www.nature.com/articles/s41557-021-00716-z)
+* [Artificial intelligence faces reproducibility crisis](https://www.science.org/doi/10.1126/science.359.6377.725)
+
+Reproducibility section[](#reproducibility-section "Link to this heading")
+---------------------------------------------------------------------------
+
+This is a screenshot of the reproducibility section shown in the PDF report.
+
+[![repro_fig](../_images/repro.jpg)](../_images/repro.jpg)
+
+Transparency section[](#transparency-section "Link to this heading")
+---------------------------------------------------------------------
+
+This is a screenshot of the transparency section shown in the PDF report.
+
+[![trans_fig](../_images/trans.jpg)](../_images/trans.jpg)
+
+[Previous](score.html "ROBERT score")
+[Next](../Examples/full_workflow/full_workflow.html "Full workflow from CSV")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of repro.txt ---
+
+--- Start of score.txt ---
+ROBERT score — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](#)
+  + [Overview](#overview)
+  + [How is the score calculated?](#how-is-the-score-calculated)
+    - [**Section B.1. Model vs "flawed" models (from -6 to 0 points):**](#section-b-1-model-vs-flawed-models-from-6-to-0-points)
+    - [**Section B.2. CV predictions of the model (2 points):**](#section-b-2-cv-predictions-of-the-model-2-points)
+    - [**Section B.3. Predictive ability & overfitting (8 points):**](#section-b-3-predictive-ability-overfitting-8-points)
+  + [Score ranges](#score-ranges)
+* [Reproducibility and Transparency](repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* ROBERT score
+* [View page source](../_sources/Report/score.rst.txt)
+
+---
+
+ROBERT score[](#robert-score "Link to this heading")
+=====================================================
+
+Overview[](#overview "Link to this heading")
+---------------------------------------------
+
+While experienced ML users can normally assess whether an ML workflow has yielded favorable results for
+valid reasons, inexperienced users may encounter difficulties in gauging the reliability of its predictive
+proficiency. It is widely recognized that ML algorithms can exhibit good metrics (i.e., R2, MAE, RMSE,
+and similar) in the validation set while harboring questionable predictive ability. For example, a user
+might assume that a model with good metrics is proficient at prediction, but that very model could yield
+comparably low errors when the y values are shuffled [1] or when using random numbers as descriptors, [2]
+casting doubt on its actual predictive validity.
+
+For these reasons, we designed the ROBERT score, which is a rating out of 10 designed to provide users
+with insight into the predictive capabilities of the models selected by ROBERT. We attempted to rank the
+models using guidelines aligned with modern ML research (see below). For a more detailed explanation of best practices
+for designing robust ML models, see references [3] and [4].
+
+* [1] [y-Randomization and Its Variants in QSPR/QSAR](https://pubs.acs.org/doi/10.1021/ci700157b)
+* [2] [Comment on “Predicting reaction performance in C–N cross-coupling using machine learning”](https://www.science.org/doi/10.1126/science.aat8603)
+* [3] [Best practices in ML for chemistry](https://www.nature.com/articles/s41557-021-00716-z)
+* [4] [Engineering best practices for ML](https://se-ml.github.io/practices)
+
+Note
+
+Please note that the ROBERT score was developed based on the following:
+
+1. insights from previous publications on best practices for ML models;
+2. our experience with these models; and
+3. a comprehensive benchmarking process that involved the nine examples presented in the ROBERT publication (DOI: <https://doi.org/10.1002/wcms.1733>) along with eight additional examples from low-data regimes (DOI: <https://doi.org/10.1039/D5SC00996K>).
+
+The scoring ranges were established to achieve consensus among ML experts at the extremes (i.e., very weak and strong models), while allowing for varied interpretations of the intermediate scores (i.e., weak and moderate).
+
+**We are completely open to discuss any advice on how to improve the thresholds used in the score or make the score more robust!**
+
+How is the score calculated?[](#how-is-the-score-calculated "Link to this heading")
+------------------------------------------------------------------------------------
+
+### **Section B.1. Model vs "flawed" models (from -6 to 0 points):**[](#section-b-1-model-vs-flawed-models-from-6-to-0-points "Link to this heading")
+
+The tests conducted within the VERIFY module are regarded as score indicators:
+
+* y-mean test: Calculates the accuracy of the model when all the predicted y values are fixed to the mean of the measured y values (straight line when plotting measured vs predicted y values).
+* y-shuffle test: Calculates the accuracy of the model after shuffling randomly all the measured y values.
+* onehot test: Calculates the accuracy of the model when replacing all descriptors for 0s and 1s. If the x value is 0, the value will be 0, otherwise it will be 1.
+
+The y-mean and y-shuffle tests are valuable in identifying overfitted and underfitted models.
+The one-hot test identifies models that are insensitive to specific values but instead focus
+on the presence of such values (i.e., reaction datasets filled with 0s where compounds are not used).
+
+| Points | Condition |
+| --- | --- |
+| 0 | Each of the VERIFY tests passed |
+| -• -1 | Each of the unclear VERIFY tests |
+| -•• -2 | Each of the VERIFY tests failed |
+
+The following examples might help clarify these points:
+
+[![reg_verify](../_images/reg_verify.jpg)](../_images/reg_verify.jpg)
+
+[![clas_verify](../_images/clas_verify.jpg)](../_images/clas_verify.jpg)
+
+### **Section B.2. CV predictions of the model (2 points):**[](#section-b-2-cv-predictions-of-the-model-2-points "Link to this heading")
+
+In regression, two metrics (RMSE and R²) are used to ensure a more robust assessment, as a model may show low R² while maintaining an acceptable RMSE. In classification, up to 3 points are assigned based on the MCC.
+
+| Points | Scaled RMSE |
+| --- | --- |
+|  | **Regression** |
+| •• 2 | ≤ 10% (high predictive ability) |
+| •  1 | ≤ 20% (moderate predictive ability) |
+| 0 | > 20% (low predictive ability) |
+|  | **Classification** |
+| ••• 3 | MCC > 0.75 (high predictive ability) |
+| •• 2 | 0.75 ≥ MCC ≥ 0.50 (moderate predictive ability) |
+| •  1 | 0.50 ≥ MCC ≥ 0.30 (low predictive ability) |
+| 0 | MCC < 0.30 (very low predictive ability) |
+
+| Points | R² (penalty) |
+| --- | --- |
+|  | **Regression** |
+| -•• -2 | R2 < 0.5 |
+| -• -1 | R2 < 0.7 |
+| 0 | R2 >= 0.70 |
+
+### **Section B.3. Predictive ability & overfitting (8 points):**[](#section-b-3-predictive-ability-overfitting-8-points "Link to this heading")
+
+The cross-validation tests guarantee the meaningfulness of the chosen data partition and guards against data overfitting. All the tests from this section use a combined dataset with training and validation sets.
+
+Section B.3a. Predictions test set (2 points)
+
+In regression, two metrics (RMSE and R²) are used to ensure a more robust assessment, as a model may show low R² while maintaining an acceptable RMSE. In classification, up to 3 points are assigned based on the MCC.
+
+| Points | Scaled RMSE |
+| --- | --- |
+|  | **Regression** |
+| •• 2 | ≤ 10% (high predictive ability) |
+| •  1 | ≤ 20% (moderate predictive ability) |
+| 0 | > 20% (low predictive ability) |
+|  | **Classification** |
+| ••• 3 | MCC > 0.75 (high predictive ability) |
+| •• 2 | 0.75 ≥ MCC ≥ 0.50 (moderate predictive ability) |
+| •  1 | 0.50 ≥ MCC ≥ 0.30 (low predictive ability) |
+| 0 | MCC < 0.30 (very low predictive ability) |
+
+| Points | R² (penalty) |
+| --- | --- |
+|  | **Regression** |
+| -•• -2 | R2 < 0.5 |
+| -• -1 | R2 < 0.7 |
+| 0 | R2 >= 0.70 |
+
+Section B.3b. Prediction accuracy test vs CV (2 points)
+
+**Regression**
+
+Differences in scaled RMSE between CV predictions of the model and Predictions test set.
+
+| Points | Scaled RMSE ratio |
+| --- | --- |
+| •• 2 | Scaled RMSE (test) ≤ 1.25\*scaled RMSE (CV) |
+| •  1 | Scaled RMSE (test) ≤ 1.50\*scaled RMSE (CV) |
+| 0 | Scaled RMSE (test) >1.50\*scaled RMSE (CV) |
+
+**Classification**
+
+Calculates the model's uncertainty by comparing the MCC obtained from the model with the MCC of the CV from Section 3a.
+
+| Points | Condition |
+| --- | --- |
+| •• 2 | MCC difference (ΔMCC) < 0.15 (low uncertainty) |
+| •  1 | 0.15 ≤ ΔMCC ≤ 0.30 (moderate uncertainty) |
+| 0 | ΔMCC > 0.30 (high uncertainty) |
+
+Section B.3c. Avg. standard deviation (2 points)
+
+**Regression**
+
+The model’s uncertainty is estimated using predictions from the 10 repetitions of the 10x 5-fold CV. ROBERT then computes the average standard deviation (SD) from all predictions and multiplies it by 4 to approximate the 95% confidence interval (CI) of a normally distributed population. The score for this test depends on the uncertainty of the results, measured by the width of the 95% CI across the range of y values.
+
+| Points | Condition |
+| --- | --- |
+| •• 2 | 95% CI (or 4\*SD) spans less than 25% of the y range (low uncertainty) |
+| •  1 | 95% CI spans between 25% and 50% of the y range (moderate uncertainty) |
+| 0 | 95% CI spans more than 50% of the y range (high uncertainty) |
+
+The following examples might help clarify these points:
+
+[![sd_explain](../_images/sd_explain.jpg)](../_images/sd_explain.jpg)
+
+[![sd_examples](../_images/sd_examples.jpg)](../_images/sd_examples.jpg)
+
+Section B.3d. Extrapolation (sorted CV) (2 points)
+
+Differences in the RMSE/MCC obtained across the five folds of a sorted 5-fold CV (where target values, y, are sorted from minimum to maximum and not shuffled during CV). First, the minimum RMSE/mMCC among the five folds is identified. Then, the differences between each fold’s RMSE/MCC and this minimum RMSE/MCC are evaluated
+
+Score ranges[](#score-ranges "Link to this heading")
+-----------------------------------------------------
+
+Some of the most common reasons for getting low scores are:
+
+* Unbalanced datasets (i.e., too many points in a region, too few in others)
+* Including too few datapoints
+* Including too few descriptors
+* Overfitted and underfitted models
+
+Different causes that might be affecting your score are included in the ROBERT score section of the PDF report.
+
+**Very weak models:** very unreliable models.
+
+[![veryweak_fig](../_images/score_veryweak.jpg)](../_images/score_veryweak.jpg)
+
+**Weak models:** unreliable models.
+
+[![weak_fig](../_images/score_weak.jpg)](../_images/score_weak.jpg)
+
+**Moderate models:** somewhat reliable models.
+
+[![moderate_fig](../_images/score_moderate.jpg)](../_images/score_moderate.jpg)
+
+**Strong models:** reliable models.
+
+[![strong_fig](../_images/score_strong.jpg)](../_images/score_strong.jpg)
+
+[Previous](../Modules/aqme.html "From SMILES to predictors")
+[Next](repro.html "Reproducibility and Transparency")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of score.txt ---
+
+--- Start of defaults.txt ---
+Default parameters — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](#)
+  + [AQME](#aqme)
+    - [Parameters](#parameters)
+  + [CURATE](#curate)
+    - [Parameters](#id1)
+  + [GENERATE](#generate)
+    - [Parameters](#id2)
+  + [PREDICT](#predict)
+    - [Parameters](#id3)
+  + [VERIFY](#verify)
+    - [Parameters](#id4)
+  + [REPORT](#report)
+    - [Parameters](#id5)
+* [Requirements](requirements.html)
+* [Running the tests](tests.html)
+* [Development](development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Default parameters
+* [View page source](../_sources/Technical/defaults.rst.txt)
+
+---
+
+Default parameters[](#default-parameters "Link to this heading")
+=================================================================
+
+This documents details the default parameters used in the ROBERT program.
+
+* [AQME](#aqme)
+
+  + [Parameters](#parameters)
+* [CURATE](#curate)
+
+  + [Parameters](#id1)
+* [GENERATE](#generate)
+
+  + [Parameters](#id2)
+* [PREDICT](#predict)
+
+  + [Parameters](#id3)
+* [VERIFY](#verify)
+
+  + [Parameters](#id4)
+* [REPORT](#report)
+
+  + [Parameters](#id5)
+
+[AQME](#id6)[](#aqme "Link to this heading")
+---------------------------------------------
+
+### [Parameters](#id7)[](#parameters "Link to this heading")
+
+> csv\_namestr, default=''
+> :   Name of the CSV file containing the database with SMILES and code\_name columns. A path can be provided (i.e. 'C:/Users/FOLDER/FILE.csv').
+>
+> destinationstr, default=None,
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> ystr, default=''
+> :   Name of the column containing the response variable in the input CSV file (i.e. 'solubility').
+>
+> qdescp\_keywordsstr, default=''
+> :   Add extra keywords to the AQME-QDESCP run (i.e. qdescp\_keywords="--qdescp\_atoms ['Ir']")
+>
+> descp\_lvlstr, default='interpret'
+> :   Type of descriptor to be used in the AQME-ROBERT workflow. Options are 'interpret', 'denovo' or 'full'.
+
+[CURATE](#id8)[](#curate "Link to this heading")
+-------------------------------------------------
+
+### [Parameters](#id9)[](#id1 "Link to this heading")
+
+> csv\_namestr, default=''
+> :   Name of the CSV file containing the database. A path can be provided (i.e. 'C:/Users/FOLDER/FILE.csv').
+>
+> ystr, default=''
+> :   Name of the column containing the response variable in the input CSV file (i.e. 'solubility').
+>
+> discardlist, default=[]
+> :   List containing the columns of the input CSV file that will not be included as descriptors
+>     in the curated CSV file (i.e. ['name','SMILES']).
+>
+> ignorelist, default=[]
+> :   List containing the columns of the input CSV file that will be ignored during the curation process
+>     (i.e. ['name','SMILES']). The descriptors will be included in the curated CSV file. The y value
+>     is automatically ignored.
+>
+> namesstr, default=''
+> :   Column of the names for each datapoint. Names are used to print outliers.
+>
+> destinationstr, default=None,
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> categoricalstr, default='onehot'
+> :   Mode to convert data from columns with categorical variables. As an example, a variable containing 4
+>     types of C atoms (i.e. primary, secondary, tertiary, quaternary) will be converted into categorical
+>     variables. Options:
+>     1. 'onehot' (for one-hot encoding, ROBERT will create a descriptor for each type of
+>     C atom using 0s and 1s to indicate whether the C type is present)
+>     2. 'numbers' (to describe the C atoms with numbers: 1, 2, 3, 4).
+>
+> corr\_filter\_xbool, default=True
+> :   Activate the correlation filters of descriptors, based on the correlation
+>     of the descriptors with other descriptors (x filter).
+>
+> corr\_filter\_ybool, default=False
+> :   Activate the correlation filters of descriptors, based on the correlation
+>     of the descriptors with the y values (y filter, for noise). This filter is only
+>     suggested for MVL.
+>
+> desc\_thresfloat, default=25
+> :   Threshold for the descriptor-to-datapoints ratio to loose the correlation filter. By default,
+>     the correlation filter is loosen if there are 25 times more datapoints than descriptors.
+>
+> thres\_xfloat, default=0.7
+> :   Thresolhold to discard descriptors based on high R\*\*2 correlation with other descriptors (i.e.
+>     if thres\_x=0.7, variables that show R\*\*2 > 0.7 will be discarded).
+>
+> thres\_yfloat, default=0.001
+> :   Thresolhold to discard descriptors with poor correlation with the y values based on R\*\*2 (i.e.
+>     if thres\_y=0.001, variables that show R\*\*2 < 0.001 will be discarded).
+>
+> seedint, default=0
+> :   Random seed used in RFECV feature selector and other protocols.
+>
+> kfoldint, default=5
+> :   Number of random data splits for the cross-validation of the RFECV feature selector.
+>
+> repeat\_kfoldsint, default=10
+> :   Number of repetitions for the k-fold cross-validation of the RFECV feature selector.
+>
+> auto\_typebool, default=True
+> :   If there are only two y values, the program automatically changes the type of problem to classification.
+
+[GENERATE](#id10)[](#generate "Link to this heading")
+------------------------------------------------------
+
+### [Parameters](#id11)[](#id2 "Link to this heading")
+
+> csv\_namestr, default=''
+> :   Name of the CSV file containing the database. A path can be provided (i.e. 'C:/Users/FOLDER/FILE.csv').
+>
+> ystr, default=''
+> :   Name of the column containing the response variable in the input CSV file (i.e. 'solubility').
+>
+> discardlist, default=[]
+> :   List containing the columns of the input CSV file that will not be included as descriptors
+>     in the curated CSV file (i.e. ['name','SMILES']).
+>
+> ignorelist, default=[]
+> :   List containing the columns of the input CSV file that will be ignored during the curation process
+>     (i.e. ['name','SMILES']). The descriptors will be included in the curated CSV file. The y value
+>     is automatically ignored.
+>
+> destinationstr, default=None
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> auto\_typebool, default=True
+> :   If there are only two y values, the program automatically changes the type of problem to classification.
+>
+> modellist, default=['RF','GB','NN','MVL'] (regression) and default=['RF','GB','NN','AdaB'] (classification)
+> :   ML models available:
+>     1. 'RF' (Random forest)
+>     2. 'MVL' (Multivariate lineal models)
+>     3. 'GB' (Gradient boosting)
+>     4. 'NN' (MLP neural network)
+>     5. 'GP' (Gaussian Process)
+>     6. 'AdaB' (AdaBoost)
+>
+> custom\_paramsstr, default=None
+> :   Define new parameters for the ML models used in the hyperoptimization workflow. The path
+>     to the folder containing all the yaml files should be specified (i.e. custom\_params='YAML\_FOLDER')
+>
+> typestr, default='reg'
+> :   Type of the pedictions. Options:
+>     1. 'reg' (Regressor)
+>     2. 'clas' (Classifier)
+>
+> seedint, default=0
+> :   Random seed used in the ML predictor models and other protocols.
+>
+> error\_typestr, default: rmse (regression), mcc (classification)
+> :   Target value used during the hyperopt optimization. Options:
+>     Regression:
+>     1. rmse (root-mean-square error)
+>     2. mae (mean absolute error)
+>     3. r2 (R-squared, not recommended since R2 might be good even with high errors in small datasets)
+>     Classification:
+>     1. mcc (Matthew's correlation coefficient)
+>     2. f1 (F1 score)
+>     3. acc (accuracy, fraction of correct predictions)
+>
+> init\_pointsint, default=10
+> :   Number of initial points for Bayesian optimization (exploration)
+>
+> n\_iterint, default=10
+> :   Number of iterations for Bayesian optimization (exploitation)
+>
+> expect\_improvint, default=0.05
+> :   Expected improvement for Bayesian optimization
+>
+> pfi\_filterbool, default=True
+> :   Activate the PFI filter of descriptors.
+>
+> pfi\_epochsint, default=5
+> :   Sets the number of times a feature is randomly shuffled during the PFI analysis
+>     (standard from sklearn webpage: 5).
+>
+> pfi\_thresholdfloat, default=0.2
+> :   The PFI filter is X% of the model's score (% adjusted, 0.2 = 20% of the total score during PFI).
+>
+> pfi\_maxint, default=0
+> :   Number of features to keep after the PFI filter. If pfi\_max is 0, all the features that pass the PFI
+>     filter are used.
+>
+> auto\_testbool, default=True
+> :   Raises % of test points to 20% if test\_set is lower than that.
+>
+> test\_setfloat, default=0.2
+> :   Amount of datapoints to separate as external test set (0.2 = 20%). These points will not be used during the
+>     hyperoptimization, and PREDICT will use the points as test set during ROBERT workflows. Select
+>     --test\_set 0 to use only training and validation.
+>
+> kfoldint, default=5
+> :   Number of random data splits for the cross-validation of the models.
+>
+> repeat\_kfoldsint, default=10
+> :   Number of repetitions for the k-fold cross-validation of the models.
+>
+> splitstr, default='even'
+> :   Specifies how the data is split into training and test sets. Options:
+>     1. 'even': splits the data evenly into training and test sets.
+>     2. 'RND': randomly splits the data.
+>     3. 'stratified': splits the data while preserving the distribution of the target variable.
+>     4. 'KN': uses a k-means approach to select representative samples.
+>     5. 'EXTRA\_Q1': selects the 10% lowest values.
+>     6. 'EXTRA\_Q5': selects the 10% highest values.
+
+[PREDICT](#id12)[](#predict "Link to this heading")
+----------------------------------------------------
+
+### [Parameters](#id13)[](#id3 "Link to this heading")
+
+> destinationstr, default=None,
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> params\_dirstr, default=''
+> :   Folder containing the database and parameters of the ML model.
+>
+> csv\_teststr, default=''
+> :   Name of the CSV file containing the test set (if any). A path can be provided (i.e.
+>     'C:/Users/FOLDER/FILE.csv').
+>
+> t\_valuefloat, default=2
+> :   t-value that will be the threshold to identify outliers (check tables for t-values elsewhere).
+>     The higher the t-value the more restrictive the analysis will be (i.e. there will be more
+>     outliers with t-value=1 than with t-value = 4).
+>
+> alphafloat, default=0.05
+> :   Significance level, or probability of making a wrong decision. This parameter is related to
+>     the confidence intervals (i.e. 1-alpha is the confidence interval). By default, an alpha value
+>     of 0.05 is used, which corresponds to a confidence interval of 95%.
+>
+> shap\_showint, default=10,
+> :   Number of descriptors shown in the plot of the SHAP analysis.
+>
+> pfi\_showint, default=10,
+> :   Number of descriptors shown in the plot of the PFI analysis.
+>
+> pfi\_epochsint, default=5,
+> :   Sets the number of times a feature is randomly shuffled during the PFI analysis
+>     (standard from sklearn webpage: 5).
+>
+> namesstr, default=''
+> :   Column of the names for each datapoint. Names are used to print outliers.
+
+[VERIFY](#id14)[](#verify "Link to this heading")
+--------------------------------------------------
+
+### [Parameters](#id15)[](#id4 "Link to this heading")
+
+> destinationstr, default=None,
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> params\_dirstr, default=''
+> :   Folder containing the database and parameters of the ML model to analyze.
+>
+> seedint, default=0
+> :   Random seed used in the ML predictor models and other protocols.
+>
+> kfoldint, default=5
+> :   Number of random data splits for the cross-validation of the models.
+>
+> repeat\_kfoldsint, default=10
+> :   Number of repetitions for the k-fold cross-validation of the models.
+
+[REPORT](#id16)[](#report "Link to this heading")
+--------------------------------------------------
+
+### [Parameters](#id17)[](#id5 "Link to this heading")
+
+> destinationstr, default=None,
+> :   Directory to create the output file(s).
+>
+> varfilestr, default=None
+> :   Option to parse the variables using a yaml file (specify the filename, i.e. varfile=FILE.yaml).
+>
+> report\_moduleslist of str, default=['CURATE','GENERATE','VERIFY','PREDICT']
+> :   List of the modules to include in the report.
+>
+> debug\_reportbool, default=False
+> :   Debug mode using during the pytests of report.py
+
+[Previous](../Videos/video_tutorials.html "Video tutorials")
+[Next](requirements.html "Requirements")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of defaults.txt ---
+
+--- Start of development.txt ---
+Development — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](defaults.html)
+* [Requirements](requirements.html)
+* [Running the tests](tests.html)
+* [Development](#)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Development
+* [View page source](../_sources/Technical/development.rst.txt)
+
+---
+
+Development[](#development "Link to this heading")
+===================================================
+
+List of main developers and contact emails:
+
+* Juan V. Alegre-Requena [
+  [ORCID](https://orcid.org/0000-0002-0769-7168) ,
+  [Github](https://github.com/jvalegre) ,
+  [email](mailto:jv.alegre%40csic.es) ]
+* David Dalmau Ginesta [
+  [ORCID](https://orcid.org/0000-0002-2506-6546) ,
+  [Github](https://github.com/ddgunizar) ,
+  [email](mailto:ddalmau%40unizar.es)]
+
+For suggestions and improvements of the code (greatly appreciated!), please
+reach out through the issues and pull requests options of [Github](https://github.com/jvalegre/robert).
+
+[Previous](tests.html "Running the tests")
+[Next](../API/API_Reference.html "Main modules")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of development.txt ---
+
+--- Start of requirements.txt ---
+Requirements — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](defaults.html)
+* [Requirements](#)
+  + [Python and Python libraries](#python-and-python-libraries)
+* [Running the tests](tests.html)
+* [Development](development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Requirements
+* [View page source](../_sources/Technical/requirements.rst.txt)
+
+---
+
+Requirements[](#requirements "Link to this heading")
+=====================================================
+
+Python and Python libraries[](#python-and-python-libraries "Link to this heading")
+-----------------------------------------------------------------------------------
+
+*These libraries are installed during the initial conda-forge installation.*
+
+* Python >= 3.6
+* matplotlib-base
+* pandas
+* numpy
+* progress
+* pyyaml
+* seaborn
+* scipy
+* scikit-learn
+* hyperopt
+* numba
+* shap
+* glib
+* weasyprint
+* gtk3
+* pango
+
+[Previous](defaults.html "Default parameters")
+[Next](tests.html "Running the tests")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of requirements.txt ---
+
+--- Start of tests.txt ---
+Running the tests — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](../Videos/video_tutorials.html)
+
+Technical Details
+
+* [Default parameters](defaults.html)
+* [Requirements](requirements.html)
+* [Running the tests](#)
+* [Development](development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Running the tests
+* [View page source](../_sources/Technical/tests.rst.txt)
+
+---
+
+Running the tests[](#running-the-tests "Link to this heading")
+===============================================================
+
+Requires the pytest library.
+
+```
+cd path/to/robert/source/code
+pytest -v
+
+```
+
+[Previous](requirements.html "Requirements")
+[Next](development.html "Development")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of tests.txt ---
+
+--- Start of video_tutorials.txt ---
+Video tutorials — robert v1.0 documentation
+
+
+
+[robert](../index.html)
+
+Installation and interface
+
+* [Installation](../Install/installation.html)
+* [Users with no Python experience](../Install/note.html)
+* [Graphical User Interface (GUI): easyROB](../Install/gui.html)
+
+How does ROBERT work?
+
+* [How to create a database](../Modules/database.html)
+* [Data curation](../Modules/curate.html)
+* [Screening of ML models](../Modules/generate.html)
+* [New predictions and feature analysis](../Modules/predict.html)
+* [Predictive ability tests](../Modules/verify.html)
+* [From SMILES to predictors](../Modules/aqme.html)
+
+ROBERT PDF report
+
+* [ROBERT score](../Report/score.html)
+* [Reproducibility and Transparency](../Report/repro.html)
+
+Examples
+
+* [Full workflow from CSV](../Examples/full_workflow/full_workflow.html)
+* [New predictions](../Examples/full_workflow/full_workflow_test.html)
+* [Full workflow from SMILES](../Examples/full_workflow/smiles_workflow.html)
+* [SMILES workflow with atomic properties](../Examples/full_workflow/smiles_vaskas.html)
+* [Use of individual modules](../Examples/modules/modules.html)
+
+Video Tutorials
+
+* [Video tutorials](#)
+  + [Full workflow from CSV](#full-workflow-from-csv)
+
+Technical Details
+
+* [Default parameters](../Technical/defaults.html)
+* [Requirements](../Technical/requirements.html)
+* [Running the tests](../Technical/tests.html)
+* [Development](../Technical/development.html)
+
+API Reference
+
+* [Main modules](../API/API_Reference.html)
+* [Other modules](../API/API_Reference.html#other-modules)
+
+Misc
+
+* [Abbreviations](../Misc/abbreviations.html)
+* [Versions](../Misc/versions.html)
+* [License](../Misc/license.html)
+* [Help?](../Misc/help.html)
+
+[robert](../index.html)
+
+* Video tutorials
+* [View page source](../_sources/Videos/video_tutorials.rst.txt)
+
+---
+
+Video tutorials[](#video-tutorials "Link to this heading")
+===========================================================
+
+Full workflow from CSV[](#full-workflow-from-csv "Link to this heading")
+-------------------------------------------------------------------------
+
+[![ROBERT examples: Full workflow from CSV](https://i3.ytimg.com/vi/-oSQyMoGUow/maxresdefault.jpg)](https://www.youtube.com/watch?v=-oSQyMoGUow&t=2s)
+
+[Previous](../Examples/modules/prediction.html "PREDICT (predict external test set and feature importance analysis)")
+[Next](../Technical/defaults.html "Default parameters")
+
+---
+
+© Copyright 2023, Juan V. Alegre Requena, David Dalmau Ginesta.
+
+Built with [Sphinx](https://www.sphinx-doc.org/) using a
+[theme](https://github.com/readthedocs/sphinx_rtd_theme)
+provided by [Read the Docs](https://readthedocs.org).
+--- End of video_tutorials.txt ---
+
+--- Start of API_Reference.rst.txt ---
+.. automodule:: robert
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Main modules
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   robert.aqme
+   robert.curate
+   robert.generate
+   robert.predict
+   robert.verify
+   robert.report
+
+Other modules
+=============
+
+.. toctree::
+   :maxdepth: 1
+
+   robert.generate_utils
+   robert.predict_utils
+   robert.utils
+
+--- End of API_Reference.rst.txt ---
+
+--- Start of robert.aqme.rst.txt ---
+AQME
+====
+
+.. autoclass:: robert.aqme.aqme
+   :members:
+
+.. automodule:: robert.aqme
+   
+
+--- End of robert.aqme.rst.txt ---
+
+--- Start of robert.curate.rst.txt ---
+CURATE
+======
+
+.. autoclass:: robert.curate.curate
+   :members:
+
+.. automodule:: robert.curate
+
+
+
+
+
+
+--- End of robert.curate.rst.txt ---
+
+--- Start of robert.generate.rst.txt ---
+GENERATE
+========
+
+.. autoclass:: robert.generate.generate
+   :members:
+
+.. automodule:: robert.generate
+   
+--- End of robert.generate.rst.txt ---
+
+--- Start of robert.generate_utils.rst.txt ---
+GENERATE_utils
+==============
+
+.. automodule:: robert.generate_utils
+   :members:
+--- End of robert.generate_utils.rst.txt ---
+
+--- Start of robert.predict.rst.txt ---
+PREDICT
+=======
+
+.. autoclass:: robert.predict.predict
+   :members:
+
+.. automodule:: robert.predict
+
+--- End of robert.predict.rst.txt ---
+
+--- Start of robert.predict_utils.rst.txt ---
+PREDICT_utils
+=============
+
+.. automodule:: robert.predict_utils
+   :members:
+--- End of robert.predict_utils.rst.txt ---
+
+--- Start of robert.report.rst.txt ---
+REPORT
+======
+
+.. autoclass:: robert.report.report
+   :members:
+
+.. automodule:: robert.report
+
+
+--- End of robert.report.rst.txt ---
+
+--- Start of robert.utils.rst.txt ---
+utils
+=====
+
+.. automodule:: robert.utils
+   :members:
+
+--- End of robert.utils.rst.txt ---
+
+--- Start of robert.verify.rst.txt ---
+VERIFY
+======
+
+.. autoclass:: robert.verify.verify
+   :members:
+
+.. automodule:: robert.verify
+
+
+--- End of robert.verify.rst.txt ---
+
+--- Start of full_workflow.rst.txt ---
+Full workflow from CSV
+======================
+
+Overview
+++++++++
+
+.. |fullworkflow_fig| image:: ../../Modules/images/FullWorkflow.jpg
+   :width: 600
+
+.. centered:: |fullworkflow_fig|
+
+Required inputs
++++++++++++++++
+
+.. |csv_FW| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example.csv
+   :width: 30
+
+* **Robert_example.csv:** CSV file with data to use as the training and validation sets. The full CSV file can be 
+  found in the `"Examples" folder of the ROBERT repository <https://github.com/jvalegre/robert/tree/master/Examples/CSV_workflow>`__ 
+  or downloaded here: |csv_FW|
+
+.. csv-table:: 
+   :file: CSV/Robert_example.csv
+   :header-rows: 1
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. Download the **Robert_example.csv** file specified in Required inputs.
+2. Go to the folder containing the CSV file in your terminal (using the "cd" command, i.e. :code:`cd C:/Users/test_robert`).
+3. Activate the conda environment where ROBERT was installed (:code:`conda activate robert`).
+4. Run the following command line:
+
+.. code:: shell
+
+   python -m robert --names Name --y Target_values --csv_name Robert_example.csv
+
+**Options used:**
+
+* :code:`--names Name`: Name of the column containing the names of the datapoints. This feature allows to print the names of the outlier points (if any).  
+
+* :code:`--y Target_values`: Name of the column containing the response y values.  
+
+* :code:`--csv_name Robert_example.csv`: CSV with the database.   
+
+Execution time and versions
++++++++++++++++++++++++++++
+
+Time: ~3.5 min
+
+System: 8 processors (11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz) using 16.0 GB RAM memory
+
+ROBERT version: 2.0.1
+
+scikit-learn-intelex version: 2025.2.0
+
+Results
++++++++
+
+.. |pdf_report_test| image:: ../images/pdf_icon.jpg
+   :target: ../../_static/ROBERT_report.pdf
+   :width: 30
+
+A PDF file called **ROBERT_report.pdf** should be created in the folder where ROBERT was executed. The PDF file can be visualized here: |pdf_report_test|
+
+The PDF report contains all the results of the workflow. In this case, two Neural Network (NN) models were the optimal model found from: 
+
+   * Four different models (Gradient Boosting GB, MultiVariate Linear MVL, Neural Network NN, Random Forest RF) 
+
+The first part of the PDF file is shown below as a preview:
+
+.. |pdf_preview| image:: ../images/FW/preview.png
+   :width: 400
+
+|pdf_preview|
+--- End of full_workflow.rst.txt ---
+
+--- Start of full_workflow_test.rst.txt ---
+New predictions
+===============
+
+Required inputs
++++++++++++++++
+
+.. |csv_FW_test| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example_test.csv
+   :width: 30
+
+* **Robert_example_test.csv:** CSV file with data to use as the external test set. The full CSV file can be 
+  found in the `"Examples" folder of the ROBERT repository <https://github.com/jvalegre/robert/tree/master/Examples/CSV_workflow>`__ 
+  or downloaded here: |csv_FW_test|
+
+.. csv-table:: 
+   :file: CSV/Robert_example_test.csv
+   :header-rows: 1
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. Run the **Full workflow from CSV** workflow from the Examples.
+2. Download the **Robert_example_test.csv** file specified in Required inputs and paste it in the same working folder.
+3. Go to the working folder in your terminal (using the "cd" command, i.e. :code:`cd C:/Users/test_robert`).
+4. Activate the conda environment where ROBERT was installed (:code:`conda activate robert`).
+5. Run the following command line:
+
+.. code:: shell
+
+    python -m robert --predict --csv_test Robert_example_test.csv
+
+.. note:: 
+
+   The --csv_test option can be used as part of end-to-end workflows. For example, this option can be added
+   to the "Full workflow from CSV" example:
+   
+   :code:`python -m robert --names Name --y Target_values --csv_name Robert_example.csv --csv_test Robert_example_test.csv`
+
+**Options used:**
+
+* :code:`--predict`: only runs the PREDICT module.  
+
+* :code:`--names Name`: Name of the column containing the names of the datapoints. This feature allows to print the names of the outlier points (if any).  
+
+* :code:`--csv_test Robert_example_test.csv`: CSV with the external test set.  
+
+Execution time and versions
++++++++++++++++++++++++++++
+
+Time: ~10 sec
+
+System: 8 processors (11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz) using 16.0 GB RAM memory
+
+ROBERT version: 2.0.1
+
+scikit-learn-intelex version: 2025.2.0
+
+Results
++++++++
+
+.. |csv_no_pfi| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example_test_NN_No_PFI.csv
+   :width: 30
+
+.. |csv_pfi| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example_test_NN_PFI.csv
+   :width: 30
+
+Two CSV files called **Robert_example_test_NN_No_PFI** and **Robert_example_test_NN_PFI** should be created inside the PREDICT folder. The two files 
+contain the predictions from the two different Neural Network (NN) models, with and without PFI filtering,
+obtained in the Full workflow example.
+
+The CSV files can be visualized here: |csv_no_pfi| (No PFI), |csv_pfi| (PFI)
+
+If you want to tabulate your results inside a report PDF, run this command line:
+
+.. code:: shell
+
+    python -m robert --report
+
+.. |pdf_report_test| image:: ../images/pdf_icon.jpg
+   :target: ../../_static/predictions_report.pdf
+   :width: 30
+
+The PDF file can be visualized here: |pdf_report_test|
+
+The predictions are sorted at the end of the PDF report (including both the No_PFI and the PFI models):
+
+.. |predictions_fig| image:: ../images/FW_test/Predictions.jpg
+   :width: 600
+
+.. centered:: |predictions_fig|
+
+
+--- End of full_workflow_test.rst.txt ---
+
+--- Start of smiles_vaskas.rst.txt ---
+SMILES workflow with atomic properties
+======================================
+
+Overview
+++++++++
+
+This is a modified version of the workflow used in the ROBERT manuscript for Vaska's catalysts, 
+with a smaller database size.
+
+.. |aqme_fig| image:: ../images/FW_vaska/vaska.jpg
+   :width: 600
+
+.. centered:: |aqme_fig|
+
+Reproducibility warning
++++++++++++++++++++++++
+
+.. warning::
+
+   **Update to AQME v1.6.0 or higher to obtain fully reproducible results!** You can do it with :code:`pip install aqme --upgrade`.
+   Otherwise, it may not be possible to exactly reproduce the results due to subtle differences in the 
+   generated xTB descriptors (0.1% changes in most cases).
+
+Required inputs
++++++++++++++++
+
+* **vaska_short.csv:** CSV file with SMILES to generate descriptors that will be used as the training and validation sets. The full CSV file can be downloaded here: |csv_smi|
+
+.. |csv_smi| image:: ../images/csv_icon.jpg
+   :target: ../../_static/vaska_short.csv
+   :width: 30  
+
+.. csv-table:: 
+   :file: CSV/vaska_short.csv
+   :header-rows: 1
+   :widths: 10, 10, 10, 10, 10, 10, 10
+
+The CSV database contains parameters used in the AQME workflow:
+
+* :code:`code_name`: compound names.  
+
+* :code:`smiles`: SMILES strings of the Ir complexes.  
+
+* :code:`barrier`: activation energy barriers.  
+
+* :code:`charge`: charge of the Ir complexes.  
+
+* :code:`mult`: multiplicity of the Ir complexes.  
+
+* :code:`complex_type`: defines squareplanar geometry during conformer generation.  
+
+* :code:`geom`: filters off conformers based on ligand positions of Ir squareplanar complexes.  
+
+Required packages
++++++++++++++++++
+
+* **AQME:** Install (or update) AQME with conda-forge (or follow the instructions from `their ReadtheDocs <https://aqme.readthedocs.io>`__):
+
+.. code:: shell
+
+    pip install aqme==1.7.1
+
+* **xTB:** Install xTB with conda-forge (or follow the instructions from `their documentation <https://xtb-docs.readthedocs.io>`__):
+
+.. code:: shell
+
+    conda install -y -c conda-forge xtb
+
+.. warning::
+
+   This workflow is not available in Windows because xTB is **only compatible with macOS and Linux!**
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. Install the programs specified in Required packages.
+2. Download the **vaska_short.csv** file specified in Required inputs.
+3. Go to the folder containing the CSV file in your terminal (using the "cd" command, i.e. :code:`cd C:/Users/test_robert`).
+4. Activate the conda environment where ROBERT was installed (:code:`conda activate robert`).
+5. Run the following command line:
+
+.. code:: shell
+
+    python -m robert --aqme --y "barrier" --csv_name "vaska_short.csv" --qdescp_keywords "--qdescp_atoms ['Ir']"
+
+**Options used:**
+
+* :code:`--aqme`: Calls the AQME module to convert SMILES into RDKit and xTB descriptors, retrieving a new CSV database. 
+
+* :code:`--y barrier`: Name of the column containing the response y values.  
+
+* :code:`--csv_name vaska_short.csv`: CSV with the SMILES strings.  
+
+* :code:`--qdescp_keywords "--qdescp_atoms ['Ir']"`: activates the generation of atomic descriptors with xTB using SMARTS patterns.  
+
+.. |br| raw:: html
+
+   <br />
+
+.. note:: 
+
+   In this example, the SMARTS pattern used is 'Ir', which specifies Ir atoms. The program allows 
+   the use of multiple SMARTS patterns simultaneously, using commas as separators, and it accepts atoms, 
+   bonds, and other structural motifs. For example:
+
+   1.	Atomic descriptors at Zn and Ir centers: :code:`"--qdescp_atoms ['Zn','Ir']"` |br|
+   2. At the two C atoms of a triple bond: :code:`"--qdescp_atoms ['C#C']"` |br|
+   3.	At the C and Zn atoms from a C-Zn bond: :code:`"--qdescp_atoms ['[C][Zn]']"` |br|
+   4.	At the C and Zn atoms from a C-Zn bond, and at the two C atoms of a triple bond: :code:`"--qdescp_atoms ['[C][Zn]','C#C']"` |br|
+   5.	At a Zn atom and at the two C atoms of a triple bond: :code:`"--qdescp_atoms ['Zn','C#C']"`
+
+   For more information about SMARTS patterns, follow `this link <https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html>`__.
+
+.. warning::
+
+   When :code:`--qdescp_keywords "--qdescp_atoms ['Ir']"` is used, all the molecules in the database that 
+   do not contain Ir atoms will not be included in the workflow. 
+
+By default, the workflow sets:
+
+* :code:`--ignore "[code_name]"` (variables ignored in the model)
+
+* :code:`--discard "[smiles,charge,mult,complex_type,geom]"` (variables discarded after descriptor generation)
+
+* :code:`--names code_name` (name of the column containing the names of the datapoints)  
+
+Execution time and versions
++++++++++++++++++++++++++++
+
+Time: ~3 min
+
+System: 4 processors (Intel Xeon Ice Lake 8352Y) using 8.0 GB RAM memory
+
+ROBERT version: 1.2.0
+
+scikit-learn-intelex version: 2024.5.0
+
+AQME version: 1.6.1
+
+xTB version: 6.6.1
+
+Results
++++++++
+
+**Initial AQME workflow**
+
+.. |csv_report_vaska| image:: ../images/csv_icon.jpg
+   :target: ../../_static/AQME-ROBERT_vaska_short.csv
+   :width: 30
+
+* The workflow starts with a CSEARCH-RDKit conformer sampling (using RDKit by default, although CREST is also available if :code:`--csearch_keywords "--program crest"` is added).
+
+* Then, QDESCP is used to generate more than 200 RDKit and xTB Boltzmann-averaged molecular descriptors (using xTB geometry optimizations and different single-point calculations).
+
+A CSV file called **AQME-ROBERT_vaska_short.csv** should be created in the folder where ROBERT was executed. The CSV 
+file can be downloaded here: |csv_report_vaska|
+
+**Following ROBERT workflow**
+
+.. |pdf_report_vaska| image:: ../images/pdf_icon.jpg
+   :target: ../../_static/ROBERT_report_vaska.pdf
+   :width: 30
+
+A PDF file called **ROBERT_report.pdf** should be created in the folder where ROBERT was executed. The PDF 
+file can be visualized here: |pdf_report_vaska|
+
+The PDF report contains all the results of the workflow. In this case, a Random Forest (RF) model with 60% training size and a Neural Network (NN) with 70% training size were the optimal models found from: 
+
+  * Four different models (Gradient Boosting GB, MultiVariate Linear MVL, Neural Network NN, Random Forest RF) 
+  * Two different partition sizes (60%, 70%) 
+
+The first part of the PDF file is shown below as a preview:
+
+.. |pdf_preview| image:: ../images/FW_vaska/preview_vaska.png
+   :width: 400
+
+|pdf_preview|
+--- End of smiles_vaskas.rst.txt ---
+
+--- Start of smiles_workflow.rst.txt ---
+Full workflow from SMILES
+=========================
+
+Overview
+++++++++
+
+.. |aqme_fig| image:: ../../Modules/images/AQME.jpg
+   :width: 600
+
+.. centered:: |aqme_fig|
+
+Reproducibility warning
++++++++++++++++++++++++
+
+.. warning::
+
+   **Update to AQME v1.6.0 or higher to obtain fully reproducible results!** You can do it with :code:`pip install aqme --upgrade`.
+   Otherwise, it may not be possible to exactly reproduce the results due to subtle differences in the 
+   generated xTB descriptors (0.1% changes in most cases).
+
+Required inputs
++++++++++++++++
+
+* **solubility_short.csv:** CSV file with SMILES to generate descriptors that will be used as the training and validation sets. The full CSV file can be found in the `Examples folder of the ROBERT repository <https://github.com/jvalegre/robert/tree/master/Examples/SMILES_workflow>`__ or downloaded here: |csv_smi|
+
+.. |csv_smi| image:: ../images/csv_icon.jpg
+   :target: ../../_static/solubility_short.csv
+   :width: 30  
+
+.. csv-table:: 
+   :file: CSV/solubility_short.csv
+   :header-rows: 1
+   :widths: 25, 25, 25
+
+The CSV database contains the following columns:
+
+* :code:`code_name`: compound names.  
+
+* :code:`smiles`: SMILES strings of the compounds.  
+
+* :code:`solubility`: solubility of the compounds.  
+
+Required packages
++++++++++++++++++
+
+* **AQME:** Install (or update) AQME with conda-forge (or follow the instructions from `their ReadtheDocs <https://aqme.readthedocs.io>`__):
+
+.. code:: shell
+
+    conda install -y -c conda-forge aqme
+    pip install aqme --upgrade      (if AQME was previously installed)
+
+* **xTB:** Install xTB with conda-forge (or follow the instructions from `their documentation <https://xtb-docs.readthedocs.io>`__):
+
+.. code:: shell
+
+    conda install -y -c conda-forge xtb
+
+.. warning::
+
+   This workflow is not available in Windows because xTB is **only compatible with macOS and Linux!**
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. Install the programs specified in Required packages.
+2. Download the **solubility_short.csv** file specified in Required inputs.
+3. Go to the folder containing the CSV file in your terminal (using the "cd" command, i.e. :code:`cd C:/Users/test_robert`).
+4. Activate the conda environment where ROBERT was installed (:code:`conda activate robert`).
+5. Run the following command line:
+
+.. code:: shell
+
+    python -m robert --aqme --y solubility --csv_name solubility_short.csv
+
+**Options used:**
+
+* :code:`--aqme`: Calls the AQME module to convert SMILES into RDKit and xTB descriptors, retrieving a new CSV database. 
+
+* :code:`--y solubility`: Name of the column containing the response y values.  
+
+* :code:`--csv_name solubility_short.csv`: CSV with the SMILES strings.  
+
+By default, the workflow sets:
+
+* :code:`--ignore "[code_name]"` (variables ignored in the model)
+
+* :code:`--discard "[smiles]"` (variables discarded after descriptor generation)
+
+* :code:`--names code_name` (name of the column containing the names of the datapoints)  
+
+Execution time and versions
++++++++++++++++++++++++++++
+
+Time: ~1.5 min
+
+System: 4 processors (Intel Xeon Ice Lake 8352Y) using 8.0 GB RAM memory
+
+ROBERT version: 1.2.0
+
+scikit-learn-intelex version: 2024.5.0
+
+AQME version: 1.6.1
+
+xTB version: 6.6.1
+
+Results
++++++++
+
+**Initial AQME workflow**
+
+.. |csv_report_smi| image:: ../images/csv_icon.jpg
+   :target: ../../_static/AQME-ROBERT_solubility_short.csv
+   :width: 30
+
+* The workflow starts with a CSEARCH-RDKit conformer sampling (using RDKit by default, although CREST is also available if :code:`--csearch_keywords "--program crest"` is added).
+
+* Then, QDESCP is used to generate more than 200 RDKit and xTB Boltzmann-averaged molecular descriptors (using xTB geometry optimizations and different single-point calculations).
+
+A CSV file called **AQME-ROBERT_solubility_short.csv** should be created in the folder where ROBERT was executed. The CSV 
+file can be downloaded here: |csv_report_smi|
+
+**Following ROBERT workflow**
+
+.. |pdf_report_smiles| image:: ../images/pdf_icon.jpg
+   :target: ../../_static/ROBERT_report_smiles.pdf
+   :width: 30
+
+A PDF file called **ROBERT_report.pdf** should be created in the folder where ROBERT was executed. The PDF 
+file can be visualized here: |pdf_report_smiles|
+
+The PDF report contains all the results of the workflow. In this case, two Random Forest (RF) models with 70% training sizes were the optimal models found from: 
+
+  * Four different models (Gradient Boosting GB, MultiVariate Linear MVL, Neural Network NN, Random Forest RF) 
+  * Two different partition sizes (60%, 70%) 
+
+The first part of the PDF file is shown below as a preview:
+
+.. |pdf_preview| image:: ../images/FW_smiles/preview_smiles.png
+   :width: 400
+
+|pdf_preview|
+--- End of smiles_workflow.rst.txt ---
+
+--- Start of curation.rst.txt ---
+CURATE (data curation)
+----------------------
+
+Overview
+++++++++
+
+.. |curate| image:: ../../Modules/images/CURATE.jpg
+   :width: 600
+
+.. centered:: |curate|
+
+Required inputs
++++++++++++++++
+
+.. |csv_FW| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example.csv
+   :width: 30
+
+* **Robert_example.csv:** CSV file with data to curate. The full CSV file can be found in the `Examples folder of the ROBERT repository <https://github.com/jvalegre/robert/tree/master/Examples/CSV_workflow>`__ or downloaded here: |csv_FW|
+
+.. csv-table:: 
+   :file: ../full_workflow/CSV/Robert_example.csv
+   :header-rows: 1
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. First, go to the folder containing the CSV files in your terminal.
+2. Run the following command line:
+
+.. code:: shell
+
+    python -m robert --names Name --y Target_values --csv_name Robert_example.csv --curate
+
+**Options used:** 
+
+* :code:`--names Name`: Name of the column containing the names of the datapoints.  
+
+* :code:`--y Target_values`: Name of the column containing the response y values.  
+
+* :code:`--csv_name Robert_example.csv`: CSV with the data to curate.  
+
+* :code:`--curate`: Use only the CURATE module.  
+
+Execution time
+++++++++++++++
+
+Time: ~5 seconds
+
+System: 4 processors (Intel Xeon Ice Lake 8352Y) using 8.0 GB RAM memory
+
+Results
++++++++
+
+* A CSV file containing the curated database (Robert_example_CURATE.csv) should be created inside the CURATE folder. 
+
+--- End of curation.rst.txt ---
+
+--- Start of modules.rst.txt ---
+Use of individual modules
+=========================
+
+.. toctree:: 
+   :maxdepth: 1
+   :caption: Individual modules
+
+   curation
+   screening
+   verification
+   prediction
+
+--- End of modules.rst.txt ---
+
+--- Start of prediction.rst.txt ---
+PREDICT (predict external test set and feature importance analysis)
+-------------------------------------------------------------------
+
+Overview
+++++++++
+
+.. |predict| image:: ../../Modules/images/PREDICT.jpg
+   :width: 600
+
+.. centered:: |predict|
+
+Required inputs
++++++++++++++++
+
+.. |csv_FW_test| image:: ../images/csv_icon.jpg
+   :target: ../../_static/Robert_example_test.csv
+   :width: 30
+
+* Previous folder from a GENERATE job.
+* **Robert_example_test.csv:** CSV file with data to use as the external test set. The full CSV file can be found in the `Examples folder of the ROBERT repository <https://github.com/jvalegre/robert/tree/master/Examples/CSV_workflow>`__ or downloaded here: |csv_FW_test|
+
+.. csv-table:: 
+   :file: ../full_workflow/CSV/Robert_example_test.csv
+   :header-rows: 1
+
+Executing the job
++++++++++++++++++
+
+**Instructions:**
+
+1. First, go to the folder where GENERATE was previously run in your terminal. You should see a folder called GENERATE on it.
+2. Run the following command line:
+
+.. code:: shell
+
+    python -m robert --csv_test Robert_example_test.csv --names Name --predict
+
+**Options used:**
+
+* :code:`--csv_test Robert_example_test.csv`: CSV with the external test set.  
+
+* :code:`--names Name`: Name of the column containing the names of the datapoints. This feature allows to print the names of the outlier points (if any).  
+
+* :code:`--predict`: Use only the PREDICT module.  
+
+Execution time
+++++++++++++++
+
+Time: ~10 seconds
+
+System: 4 processors (Intel Xeon Ice Lake 8352Y) using 8.0 GB RAM memory
+
+Results
++++++++
+
+* Two graphs, for No_PFI and for PFI (in /PREDICT), with: representation of predictions, SHAP feature analysis, PFI feature analysis and outlier analysis .
+* Six CSV files with the predictions of each set, for No_PFI and for PFI (in /PREDICT).
+
+--- End of prediction.rst.txt ---
+

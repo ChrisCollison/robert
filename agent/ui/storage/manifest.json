@@ -1,0 +1,45 @@
+{
+  "build_timestamp": "2026-05-18T14:05:01Z",
+  "knowledge_directory": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge",
+  "storage_directory": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/storage",
+  "chunk_size": 350,
+  "chunk_overlap": 75,
+  "supported_extensions": [
+    ".md",
+    ".pdf",
+    ".txt"
+  ],
+  "indexed_files": [
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/ROBERT - Bridging the gap - WIREs Comput Mol Sci - 2024 - Dalmau - ROBERT  Bridging the Gap Between Machine Learning and Chemistry (1).pdf",
+      "source_name": "ROBERT - Bridging the gap - WIREs Comput Mol Sci - 2024 - Dalmau - ROBERT  Bridging the Gap Between Machine Learning and Chemistry (1).pdf",
+      "file_sha256": "1bf7d2008438a8f2eb0e5a4958ac4467dc97d5565982f3737935d1b9a5487dc8"
+    },
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/ROBERT Supporting Information.pdf",
+      "source_name": "ROBERT Supporting Information.pdf",
+      "file_sha256": "047a068b9d5bd1278adde7ed391bf3dbc8f5f07f2ad94abdb215d71bf66405d7"
+    },
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/ROBERT_DOCS_combined_1.txt",
+      "source_name": "ROBERT_DOCS_combined_1.txt",
+      "file_sha256": "f1438a78e64ab128161453d3212ed7b06cd49bba5021e22de98aacb2b630e5e4"
+    },
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/ROBERT_DOCS_combined_2.txt",
+      "source_name": "ROBERT_DOCS_combined_2.txt",
+      "file_sha256": "6e793d983d835e0f35b81f3de68d592da2fa51a9d2bde41f1fe43ec1636124ac"
+    },
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/ROBERT_DOCS_combined_3.txt",
+      "source_name": "ROBERT_DOCS_combined_3.txt",
+      "file_sha256": "a4e6764347f38c97fd5f4dbbcecaf54e4b561fae29fb27defa8845d7e068e945"
+    },
+    {
+      "source_path": "/Users/cjcscha/ROBERT/helper_rob/robert/agent/ui/knowledge/WIREs Comput Mol Sci - 2023 - Alegre\u2010Requena - AQME  Automated quantum mechanical environments for researchers and.pdf",
+      "source_name": "WIREs Comput Mol Sci - 2023 - Alegre\u2010Requena - AQME  Automated quantum mechanical environments for researchers and.pdf",
+      "file_sha256": "8a24b8e4abe5e6a696a4fb64bf9d9083709c9f222c97f956942d171b5d846e38"
+    }
+  ],
+  "num_chunks": 198
+}
