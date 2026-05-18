@@ -32,6 +32,22 @@ Phase 2B — OpenAI Fallback (After 2A)
 - [x] Add key-setup gating and security checks before first API call.
 - [x] Track query counts/cost mode in UI logs for budget awareness.
 
+Phase 2C — Experimental Local Knowledge Base (RAG, Phase 1)
+- [x] Create local RAG package under `agent/ui/rag/` with `loaders.py`, `chunking.py`, `build_index.py`, and `retrieve.py`.
+- [x] Add local knowledge and storage folders (`agent/ui/knowledge/`, `agent/ui/storage/`) with gitkeep placeholders.
+- [x] Implement local-only document loading for `.txt`, `.md`, and `.pdf` (PyMuPDF/`fitz` for PDF extraction).
+- [x] Implement local-only overlapping word chunking (defaults: chunk size 900 words, overlap 150 words).
+- [x] Implement local-only BM25 indexing (`rank-bm25`) and persist artifacts to `agent/ui/storage/`:
+  - [x] `chunks.jsonl`
+  - [x] `bm25.pkl`
+  - [x] `manifest.json`
+- [x] Implement `build_local_index(...)` reusable function and summary return payload in `agent/ui/rag/build_index.py`.
+- [x] Implement local retrieval and context formatting in `agent/ui/rag/retrieve.py` with helpful missing-index/empty-knowledge errors.
+- [x] Add beginner notebook workflow `agent/ui/Build_Local_Knowledge_Index.ipynb` that wraps reusable functions (no duplicated logic).
+- [x] Update `requirements_ui.txt` with local RAG dependencies if missing (`rank-bm25`, `pymupdf`; keep `python-dotenv` aligned with current usage).
+- [x] Add minimal tests for chunking, loading, index build, and retrieval in existing test structure.
+- [x] Add README section: "Experimental Local Knowledge Base" with local-first privacy guarantees and Phase 1 scope.
+
 ## Unified Snapshot (2026-05-15)
 
 Goal

@@ -3,22 +3,125 @@
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Optional, Dict, Any, List
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from llm_context import pack_evidence, TokenBudget
-from chat_prompts import format_system_prompt
+# Support both package imports (tests/app) and direct module execution.
+try:
+    from .llm_context import pack_evidence, TokenBudget
+    from ..chat_prompts import format_system_prompt
+    from .rag.retrieve import retrieve, build_context
+except ImportError:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from llm_context import pack_evidence, TokenBudget
+    from chat_prompts import format_system_prompt
+    from rag.retrieve import retrieve, build_context
 
 logger = logging.getLogger(__name__)
 
 QUERY_COUNTS = {
     "heuristic": 0,
+    "local_rag": 0,
     "openai": 0,
     "openai_unavailable": 0,
     "no_api_key": 0,
 }
+
+
+def _is_local_rag_enabled() -> bool:
+    """Return whether local RAG retrieval should run for unmatched questions."""
+    value = os.getenv("ROBERT_ENABLE_LOCAL_RAG", "true").strip().lower()
+    return value not in {"0", "false", "no", "off"}
+
+
+def _rag_storage_dir() -> str:
+    """Return storage directory path for local RAG artifacts."""
+    return os.getenv("ROBERT_RAG_STORAGE_DIR", "agent/ui/storage")
+
+
+def _rag_top_k() -> int:
+    """Return top-k retrieval size for local RAG."""
+    try:
+        return max(1, int(os.getenv("ROBERT_RAG_TOP_K", "3")))
+    except ValueError:
+        return 3
+
+
+def _knowledge_dir() -> Path:
+    """Return path to local knowledge directory."""
+    return Path(os.getenv("ROBERT_RAG_KNOWLEDGE_DIR", "agent/ui/knowledge"))
+
+
+def _local_index_stale_hint() -> Optional[str]:
+    """Return a warning if local knowledge appears newer than the saved index."""
+    storage = Path(_rag_storage_dir())
+    chunks_path = storage / "chunks.jsonl"
+    bm25_path = storage / "bm25.pkl"
+    if not chunks_path.exists() or not bm25_path.exists():
+        return None
+
+    index_mtime = min(chunks_path.stat().st_mtime, bm25_path.stat().st_mtime)
+    knowledge = _knowledge_dir()
+    if not knowledge.exists():
+        return None
+
+    newest_doc_mtime = None
+    for path in knowledge.rglob("*"):
+        if path.is_file() and path.suffix.lower() in {".txt", ".md", ".pdf"}:
+            mtime = path.stat().st_mtime
+            newest_doc_mtime = mtime if newest_doc_mtime is None else max(newest_doc_mtime, mtime)
+
+    if newest_doc_mtime is not None and newest_doc_mtime > index_mtime:
+        return (
+            "Note: knowledge files look newer than the current index. "
+            "Rebuild the local knowledge index notebook for freshest retrieval results."
+        )
+    return None
+
+
+def _get_local_rag_context(user_question: str) -> Dict[str, Any]:
+    """Retrieve local RAG chunks for a user question."""
+    if not _is_local_rag_enabled():
+        return {"enabled": False, "results": [], "context": "", "error": None}
+
+    try:
+        results = retrieve(
+            query=user_question,
+            k=_rag_top_k(),
+            storage_dir=_rag_storage_dir(),
+        )
+    except Exception as exc:
+        logger.info("Local RAG unavailable for this query: %s", exc)
+        return {"enabled": True, "results": [], "context": "", "error": str(exc)}
+
+    context = build_context(results) if results else ""
+    return {"enabled": True, "results": results, "context": context, "error": None}
+
+
+def _local_rag_response(rag_payload: Dict[str, Any]) -> Optional[str]:
+    """Return a user-facing response from local retrieval results."""
+    results = rag_payload.get("results", []) if isinstance(rag_payload, dict) else []
+    if not results:
+        return None
+
+    lines = [
+        "I could not match a deterministic FAQ rule, but I found relevant local knowledge snippets:",
+        "",
+    ]
+    for i, item in enumerate(results, start=1):
+        text = str(item.get("text", "")).strip().replace("\n", " ")
+        preview = text[:260] + ("..." if len(text) > 260 else "")
+        lines.append(
+            f"[{i}] {item.get('source_name', 'unknown')} | chunk {item.get('chunk_index', '?')} | score={item.get('score', 0.0):.4f}"
+        )
+        lines.append(preview)
+        lines.append("")
+
+    stale_hint = _local_index_stale_hint()
+    if stale_hint:
+        lines.append(stale_hint)
+
+    return "\n".join(lines).strip()
 
 
 def _log_query_route(route: str) -> None:
@@ -371,6 +474,7 @@ def call_llm_api_with_budget(
     user_question: str,
     run_context: dict,
     diagnosis_json: dict,
+    retrieved_context: str = "",
 ) -> Optional[Dict[str, Any]]:
     """
     Call OpenAI API with compact evidence packing and token tracking.
@@ -386,6 +490,13 @@ def call_llm_api_with_budget(
     # Pack evidence
     budget = TokenBudget()
     evidence_text, budget = pack_evidence(run_context, diagnosis_json, user_question, budget)
+    if retrieved_context:
+        evidence_text = (
+            evidence_text
+            + "\n\nLocal Knowledge (retrieved locally; cite with source labels):\n"
+            + retrieved_context
+        )
+        budget.add_context(retrieved_context)
     
     # Get system prompt
     model_name = os.getenv("ROBERT_OPENAI_MODEL", "gpt-4o-mini")
@@ -447,8 +558,28 @@ def answer_question(
         _log_query_route("heuristic")
         return {"source": "heuristic", "content": response, "tokens_input": 0, "tokens_output": 0, "cost_usd": 0.0}
 
+    rag_payload = _get_local_rag_context(user_question)
+    rag_context = rag_payload.get("context", "") if isinstance(rag_payload, dict) else ""
+
+    local_response = _local_rag_response(rag_payload)
+    if local_response and not api_key:
+        _log_query_route("local_rag")
+        return {
+            "source": "local-rag",
+            "content": local_response,
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+        }
+
     if api_key:
-        result = call_llm_api_with_budget(api_key, user_question, run_context or {}, diagnosis_json or {})
+        result = call_llm_api_with_budget(
+            api_key,
+            user_question,
+            run_context or {},
+            diagnosis_json or {},
+            retrieved_context=rag_context,
+        )
         if result:
             _log_query_route("openai")
             return result

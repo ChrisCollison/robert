@@ -102,6 +102,7 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
 
         badge_text = {
             "heuristic": "Heuristic",
+            "local-rag": "Local RAG",
             "openai": "OpenAI",
             "fallback-disabled": "Fallback Disabled",
             "no-api-key": "No API Key",

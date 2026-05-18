@@ -80,6 +80,30 @@ Optional environment variables:
 
 If `openai` is not installed, the UI still starts and the chat returns a clear fallback-unavailable message.
 
+## Experimental Local Knowledge Base
+
+This repository includes a local-only experimental knowledge indexing workflow (Phase 1).
+
+- Place `.txt`, `.md`, and `.pdf` files in `agent/ui/knowledge/`.
+- Build the index locally with the notebook `agent/ui/Build_Local_Knowledge_Index.ipynb`.
+- Current default chunking is `350` words with `75` words overlap.
+- Indexing and retrieval happen fully on your machine (no document upload to OpenAI).
+- Full documents are not sent to OpenAI.
+- In future chat integration, only retrieved chunks may be passed to optional LLM fallback.
+
+Important workflow note:
+- Rebuild the local index every time you add, remove, or modify documents in `agent/ui/knowledge/`.
+
+Current status:
+- Phase 1 includes local loading, chunking, BM25 indexing, and retrieval helpers.
+- Phase 2 integration is now available as an optional local retrieval path in chat (heuristics-first remains primary).
+- A future phase may include seeded local FAQ documents (question/answer notes) in `agent/ui/knowledge/`.
+
+Optional local retrieval settings:
+- `ROBERT_ENABLE_LOCAL_RAG` defaults to `true` (set to `false` to disable).
+- `ROBERT_RAG_STORAGE_DIR` defaults to `agent/ui/storage`.
+- `ROBERT_RAG_TOP_K` defaults to `3`.
+
 ## Development
 
 ### Directory Structure
