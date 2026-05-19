@@ -63,6 +63,186 @@ def _format_robert_score_line(scores: Dict[str, Any]) -> str:
     )
 
 
+def _artifact_label(artifact_key: str) -> str:
+    """Return a short human-readable label for a run artifact key."""
+    labels = {
+        "results_plot": "Results plot",
+        "cv_variability_plot": "CV variability plot",
+        "shap_plot": "SHAP plot",
+        "pfi_plot": "PFI plot",
+        "pearson_heatmap": "Pearson heatmap",
+        "outliers_plot": "Outliers plot",
+        "y_distribution_plot": "Target distribution plot",
+        "verify_plot": "VERIFY flawed-model plot",
+    }
+    return labels.get(artifact_key, artifact_key.replace("_", " ").title())
+
+
+def _verify_plot_relpath(run_context: Dict[str, Any], variant: str) -> Optional[str]:
+    """Return relative path to the VERIFY comparison plot for the selected variant."""
+    verify = run_context.get("verify", {}) if isinstance(run_context, dict) else {}
+    section = verify.get(variant, {}) if isinstance(verify, dict) else {}
+    artifacts = section.get("artifacts", {}) if isinstance(section, dict) else {}
+    if isinstance(artifacts, dict):
+        explicit = artifacts.get("verify_plot")
+        if isinstance(explicit, str) and explicit.lower().endswith((".png", ".jpg", ".jpeg")):
+            return explicit
+
+    model = run_context.get("ml_model") if isinstance(run_context, dict) else None
+    if not isinstance(model, str) or not model:
+        return None
+    suffix = "PFI" if variant == "pfi" else "No_PFI"
+    return f"VERIFY/VERIFY_tests_{model}_{suffix}.png"
+
+
+def _artifact_topic(user_question: str) -> Optional[str]:
+    """Map a question to the most relevant artifact topic when possible."""
+    q = (user_question or "").strip().lower()
+    if not q:
+        return None
+
+    if any(
+        term in q
+        for term in (
+            "flawed",
+            "y_mean",
+            "y_shuffle",
+            "onehot",
+            "verify",
+            "verification",
+            "sorted cross-validation",
+        )
+    ):
+        return "verify"
+
+    if any(
+        term in q
+        for term in (
+            "shap",
+            "feature importance",
+            "variable importance",
+            "pfi",
+            "descriptor",
+            "feature",
+            "which features",
+            "what features",
+            "drivers",
+            "influenc",
+            "importance",
+            "correlat",
+        )
+    ):
+        return "feature"
+    if any(
+        term in q
+        for term in (
+            "outlier",
+            "anomal",
+            "distribution",
+            "uniform",
+            "target spread",
+            "y distribution",
+            "skew",
+            "balanced",
+            "balance",
+            "spread",
+        )
+    ):
+        return "data_quality"
+    if any(
+        term in q
+        for term in (
+            "cv",
+            "test",
+            "overfit",
+            "overfitting",
+            "gap",
+            "predictive ability",
+            "results",
+            "performance",
+            "predictive",
+            "fit",
+        )
+    ):
+        return "performance"
+    if "score" in q or ("why" in q and ("model" in q or "result" in q)):
+        return "performance"
+    return None
+
+
+def _artifact_bundle_summary(artifacts: List[Dict[str, Any]]) -> str:
+    """Return a short summary of the selected artifact bundle."""
+    labels = [str(item.get("label", item.get("key", "artifact"))) for item in artifacts if isinstance(item, dict)]
+    labels = [label for label in labels if label]
+    if not labels:
+        return "relevant evidence images"
+    if len(labels) == 1:
+        return labels[0]
+    if len(labels) == 2:
+        return f"{labels[0]} and {labels[1]}"
+    return ", ".join(labels[:-1]) + f", and {labels[-1]}"
+
+
+def _append_artifact_note(content: str, artifacts: List[Dict[str, Any]]) -> str:
+    """Append a short note describing attached evidence images."""
+    if not artifacts:
+        return content
+    note = f"Attached evidence images: {_artifact_bundle_summary(artifacts)}."
+    if content.strip().endswith(note):
+        return content
+    return f"{content}\n\n{note}" if content else note
+
+
+def _select_evidence_artifacts(user_question: str, run_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Return the most relevant image artifacts for a question."""
+    if not isinstance(run_context, dict):
+        return []
+
+    predict = run_context.get("predict", {}) if isinstance(run_context.get("predict"), dict) else {}
+    variant = _best_variant(run_context)
+    topic = _artifact_topic(user_question)
+
+    if topic == "verify":
+        verify_plot = _verify_plot_relpath(run_context, variant)
+        if isinstance(verify_plot, str) and verify_plot.lower().endswith((".png", ".jpg", ".jpeg")):
+            return [
+                {
+                    "key": "verify_plot",
+                    "label": _artifact_label("verify_plot"),
+                    "variant": variant,
+                    "path": verify_plot,
+                }
+            ]
+        return []
+
+    if topic == "feature":
+        artifact_keys = ["shap_plot", "pfi_plot", "pearson_heatmap"]
+    elif topic == "data_quality":
+        artifact_keys = ["outliers_plot", "y_distribution_plot"]
+    else:
+        artifact_keys = ["results_plot", "cv_variability_plot"]
+
+    variant_context = predict.get(variant, {}) if isinstance(predict, dict) else {}
+    artifacts = variant_context.get("artifacts", {}) if isinstance(variant_context, dict) else {}
+    if not isinstance(artifacts, dict):
+        return []
+
+    selected: List[Dict[str, Any]] = []
+    for key in artifact_keys:
+        path = artifacts.get(key)
+        if not isinstance(path, str) or not path.lower().endswith((".png", ".jpg", ".jpeg")):
+            continue
+        selected.append(
+            {
+                "key": key,
+                "label": _artifact_label(key),
+                "variant": variant,
+                "path": path,
+            }
+        )
+    return selected
+
+
 def _is_local_rag_enabled() -> bool:
     """Return whether local RAG retrieval should run for unmatched questions."""
     value = os.getenv("ROBERT_ENABLE_LOCAL_RAG", "true").strip().lower()
@@ -286,6 +466,7 @@ def format_chat_message(
     tokens_input: int = 0,
     tokens_output: int = 0,
     cost_usd: float = 0.0,
+    artifacts: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Format a single chat message (Phase 2).
@@ -300,11 +481,20 @@ def format_chat_message(
         cost_usd: Estimated USD cost
         
     Returns:
-        Dict with keys: role, content, source, parity_status, tokens_input, tokens_output, cost_usd
+        Dict with keys: role, content, source, parity_status, tokens_input, tokens_output, cost_usd, artifacts
     """
-    message = {"role": role, "content": content, "source": source, "tokens_input": tokens_input, "tokens_output": tokens_output, "cost_usd": cost_usd}
+    message = {
+        "role": role,
+        "content": content,
+        "source": source,
+        "tokens_input": tokens_input,
+        "tokens_output": tokens_output,
+        "cost_usd": cost_usd,
+    }
     if parity_status:
         message["parity_status"] = parity_status
+    if artifacts:
+        message["artifacts"] = artifacts
     return message
 
 
@@ -371,6 +561,48 @@ def heuristic_answer(user_question: str, run_context: Dict[str, Any]) -> Optiona
     m = _extract_metrics(run_context, variant)
     verify = _verify_counts(run_context, variant)
     parser_warnings = _global_warnings(run_context)
+
+    if (
+        ("plot" in q or "image" in q or "figure" in q)
+        and any(term in q for term in ("don't see", "do not see", "cant see", "can't see", "where", "show"))
+    ):
+        return (
+            "Those evidence images are shown as cards in assistant replies on the right panel, "
+            "and they are also available in the left panel under Evidence Images for the selected run. "
+            "If you still do not see them, re-send a score/feature/outlier/distribution question after selecting the run again."
+        )
+
+    if "specific plot" in q or (("surface" in q or "show" in q) and "plot" in q):
+        return (
+            "I will surface the most relevant run plot in the assistant card attachment for this question. "
+            "For flawed-model/VERIFY questions this is the VERIFY flawed-model plot; "
+            "for feature or data-quality questions, the corresponding SHAP/PFI or outlier/distribution plots are attached."
+        )
+
+    if any(term in q for term in ("flawed", "y_mean", "y_shuffle", "onehot")):
+        verify_block = run_context.get("verify", {}).get(variant, {}) if isinstance(run_context.get("verify"), dict) else {}
+        outcomes = verify_block.get("test_outcomes", []) if isinstance(verify_block, dict) else []
+        cv_rmse = verify_block.get("cv_rmse_original") if isinstance(verify_block, dict) else None
+        threshold_15 = verify_block.get("threshold_15") if isinstance(verify_block, dict) else None
+        threshold_30 = verify_block.get("threshold_30") if isinstance(verify_block, dict) else None
+
+        lines = [
+            "In that VERIFY plot, 'model' is your real model CV RMSE, while y_mean, y_shuffle, and onehot are intentionally flawed baselines.",
+            "For a healthy model, those flawed baselines should have clearly worse (higher) RMSE than your model.",
+        ]
+        if cv_rmse is not None and threshold_15 is not None and threshold_30 is not None:
+            lines.append(
+                f"For this run ({variant.upper()}), model CV RMSE is {cv_rmse}, with +15% and +30% reference thresholds at {threshold_15} and {threshold_30}."
+            )
+        if isinstance(outcomes, list) and outcomes:
+            summary = []
+            for item in outcomes:
+                if not isinstance(item, dict):
+                    continue
+                summary.append(f"{item.get('test')}: {item.get('verdict')} (RMSE={item.get('metric_value')})")
+            if summary:
+                lines.append("VERIFY outcomes: " + "; ".join(summary) + ".")
+        return " ".join(lines)
 
     if "why" in q and "score" in q:
             # Defer to the richer diagnosis-backed answer when available;
@@ -593,6 +825,10 @@ def answer_question(
     if response is None and isinstance(diagnosis_json, dict):
         response = heuristic_answer_from_diagnosis(user_question, run_context, diagnosis_json)
 
+    artifacts = _select_evidence_artifacts(user_question, run_context)
+    if response and artifacts:
+        response = f"{response}\n\nAttached evidence images: {_artifact_bundle_summary(artifacts)}."
+
     # For score-oriented questions, try to attach local KB snippets even when heuristics answer.
     rag_payload: Dict[str, Any] = {"enabled": False, "results": [], "context": "", "error": None}
     if _is_score_question(user_question):
@@ -602,14 +838,23 @@ def answer_question(
         local_response = _local_rag_response(rag_payload)
         if local_response:
             response = f"{response}\n\nRelated local knowledge snippets:\n\n{local_response}"
+        response = _append_artifact_note(response, artifacts)
         _log_query_route("heuristic")
-        return {"source": "heuristic", "content": response, "tokens_input": 0, "tokens_output": 0, "cost_usd": 0.0}
+        return {
+            "source": "heuristic",
+            "content": response,
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": artifacts,
+        }
 
     rag_payload = _get_local_rag_context(user_question, use_local_rag=use_local_rag)
     rag_context = rag_payload.get("context", "") if isinstance(rag_payload, dict) else ""
 
     local_response = _local_rag_response(rag_payload)
     if local_response and not api_key:
+        local_response = _append_artifact_note(local_response, artifacts)
         _log_query_route("local_rag")
         return {
             "source": "local-rag",
@@ -617,6 +862,7 @@ def answer_question(
             "tokens_input": 0,
             "tokens_output": 0,
             "cost_usd": 0.0,
+            "artifacts": artifacts,
         }
 
     if api_key:
@@ -628,6 +874,8 @@ def answer_question(
             retrieved_context=rag_context,
         )
         if result:
+            result["artifacts"] = artifacts
+            result["content"] = _append_artifact_note(str(result.get("content", "")), artifacts)
             _log_query_route("openai")
             return result
 
@@ -642,6 +890,7 @@ def answer_question(
             "tokens_input": 0,
             "tokens_output": 0,
             "cost_usd": 0.0,
+            "artifacts": artifacts,
         }
 
     _log_query_route("no_api_key")
@@ -655,6 +904,7 @@ def answer_question(
         "tokens_input": 0,
         "tokens_output": 0,
         "cost_usd": 0.0,
+        "artifacts": artifacts,
     }
 
 

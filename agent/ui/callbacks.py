@@ -10,6 +10,7 @@ Handles:
 from dash import callback, Input, Output, State, html, dcc, no_update
 import dash_bootstrap_components as dbc
 import logging
+from pathlib import Path
 from typing import Tuple, List, Dict, Any
 from utils import (
     load_run_context,
@@ -24,6 +25,42 @@ from chat import answer_question, format_chat_message
 from parity import check_parity
 
 logger = logging.getLogger(__name__)
+
+
+def _contextualize_plot_followup(user_message: str, history: List[Dict[str, Any]]) -> str:
+    """Expand ambiguous plot follow-ups with the prior user turn for routing."""
+    text = (user_message or "").strip()
+    if not text:
+        return text
+
+    q = text.lower()
+    is_ambiguous_plot_followup = any(
+        term in q
+        for term in (
+            "specific plot",
+            "that plot",
+            "this plot",
+            "surface the plot",
+            "surface that",
+            "surface this",
+            "show that plot",
+            "show this plot",
+        )
+    )
+    if not is_ambiguous_plot_followup:
+        return text
+
+    history_items = history if isinstance(history, list) else []
+    for msg in reversed(history_items):
+        if not isinstance(msg, dict):
+            continue
+        if msg.get("role") != "user":
+            continue
+        prev = str(msg.get("content", "")).strip()
+        if prev:
+            return f"{prev} {text}"
+
+    return text
 
 
 def _severity_badge(level: str) -> dbc.Badge:
@@ -80,7 +117,68 @@ def _render_observations(diagnosis_json: Dict[str, Any]) -> html.Div:
     return html.Div(sections)
 
 
-def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
+def _render_artifact_cards(run_context: Dict[str, Any], artifacts: List[Dict[str, Any]]) -> List[Any]:
+    """Render image attachments for assistant chat messages."""
+    if not isinstance(run_context, dict) or not isinstance(artifacts, list) or not artifacts:
+        return []
+
+    run_root_value = run_context.get("results_dir")
+    if not isinstance(run_root_value, str) or not run_root_value:
+        return []
+
+    run_root = Path(run_root_value)
+    if not run_root.exists():
+        return []
+
+    image_lookup = {image["path"]: image for image in find_evidence_images(str(run_root), run_context)}
+    cards: List[Any] = []
+
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            continue
+        artifact_path = artifact.get("path")
+        if not isinstance(artifact_path, str) or not artifact_path:
+            continue
+
+        if Path(artifact_path).is_absolute():
+            resolved_path = str(Path(artifact_path).resolve())
+        else:
+            # Artifact paths in run_context are relative to the run outputs folder.
+            resolved_path = str((run_root / "outputs" / artifact_path).resolve())
+        image = image_lookup.get(resolved_path)
+        if not image:
+            continue
+
+        title = artifact.get("label") or image["name"]
+        variant = str(artifact.get("variant", "")).upper()
+        subtitle = f"{variant} • {image['name']}" if variant else image["name"]
+        cards.append(
+            dbc.Card(
+                [
+                    dbc.CardHeader(title, className="small fw-semibold"),
+                    dbc.CardBody(
+                        [
+                            html.Img(
+                                src=image["data_uri"],
+                                style={
+                                    "width": "100%",
+                                    "height": "auto",
+                                    "maxHeight": "240px",
+                                    "objectFit": "contain",
+                                },
+                            ),
+                            html.Div(subtitle, className="small text-muted mt-2"),
+                        ]
+                    ),
+                ],
+                className="mt-2",
+            )
+        )
+
+    return cards
+
+
+def _render_chat_history(messages: List[Dict[str, str]], run_context: Dict[str, Any] = None) -> List[Any]:
     if not messages:
         return [html.P("Ask a question about why this run got its score.", className="text-muted")]
 
@@ -134,6 +232,10 @@ def _render_chat_history(messages: List[Dict[str, str]]) -> List[Any]:
         ]
         if token_footer:
             alert_children.append(token_footer)
+
+        artifact_cards = _render_artifact_cards(run_context or {}, msg.get("artifacts", []))
+        if artifact_cards:
+            alert_children.append(html.Div(artifact_cards, className="mt-2"))
 
         blocks.append(
             dbc.Alert(
@@ -360,7 +462,7 @@ def handle_chat_message(
         content = "Select a run first so the assistant can use run-specific evidence."
         base_history = history if isinstance(history, list) else []
         updated = base_history + [format_chat_message("assistant", content, source="assistant")]
-        return updated, _render_chat_history(updated), ""
+        return updated, _render_chat_history(updated, run_context), ""
 
     config = get_config()
     api_key = config.get("api_key")
@@ -380,10 +482,12 @@ def handle_chat_message(
         updated_history.append(
             format_chat_message("assistant", blocked, source="parity-fail", parity_status=parity_status)
         )
-        return updated_history, _render_chat_history(updated_history), ""
+        return updated_history, _render_chat_history(updated_history, run_context), ""
+
+    routed_message = _contextualize_plot_followup(user_message, base_history)
 
     result = answer_question(
-        user_message,
+        routed_message,
         run_context,
         diagnosis_json,
         api_key,
@@ -402,7 +506,8 @@ def handle_chat_message(
             tokens_input=result.get("tokens_input", 0),
             tokens_output=result.get("tokens_output", 0),
             cost_usd=result.get("cost_usd", 0.0),
+            artifacts=result.get("artifacts", []),
         )
     )
 
-    return updated_history, _render_chat_history(updated_history), ""
+    return updated_history, _render_chat_history(updated_history, run_context), ""

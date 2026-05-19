@@ -272,6 +272,20 @@ def _candidate_image_paths(run_dir: Path, run_context: Dict[str, Any]) -> List[P
         add_artifact_paths(predict.get("no_pfi", {}))
         add_artifact_paths(predict.get("pfi", {}))
 
+    verify = run_context.get("verify", {})
+    if isinstance(verify, dict):
+        add_artifact_paths(verify.get("no_pfi", {}))
+        add_artifact_paths(verify.get("pfi", {}))
+
+    # Include generated images across output modules so left panel remains faithful to report assets.
+    for folder in ["PREDICT", "VERIFY", "CURATE", "GENERATE"]:
+        base = outputs_dir / folder
+        if not base.exists():
+            continue
+        candidates.extend(base.rglob("*.png"))
+        candidates.extend(base.rglob("*.jpg"))
+        candidates.extend(base.rglob("*.jpeg"))
+
     # Fallback: include report assets if they contain image files.
     report_assets = run_dir / "report_assets"
     if report_assets.exists():
