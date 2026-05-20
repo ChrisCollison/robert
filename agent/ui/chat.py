@@ -3,6 +3,7 @@
 import logging
 import os
 import sys
+import json
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -12,12 +13,16 @@ try:
     from ..chat_prompts import format_system_prompt
     from .rag.retrieve import retrieve, build_context
     from .config import load_openai_model
+    from .utils import load_dataset_profile, load_diagnosis_summary, get_run_root_from_context_path
+    from .guided_faq import get_faq_item
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from llm_context import pack_evidence, TokenBudget
     from chat_prompts import format_system_prompt
     from rag.retrieve import retrieve, build_context
     from config import load_openai_model
+    from utils import load_dataset_profile, load_diagnosis_summary, get_run_root_from_context_path
+    from guided_faq import get_faq_item
 
 logger = logging.getLogger(__name__)
 
@@ -469,6 +474,7 @@ def format_chat_message(
     tokens_output: int = 0,
     cost_usd: float = 0.0,
     artifacts: Optional[List[Dict[str, Any]]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Format a single chat message (Phase 2).
@@ -497,7 +503,302 @@ def format_chat_message(
         message["parity_status"] = parity_status
     if artifacts:
         message["artifacts"] = artifacts
+    if metadata:
+        message.update(metadata)
     return message
+
+
+def _guided_evidence_availability(
+    run_context: Dict[str, Any],
+    diagnosis_json: Optional[Dict[str, Any]],
+    dataset_profile: Optional[Dict[str, Any]],
+    diagnosis_summary: str,
+) -> Dict[str, bool]:
+    """Compute coarse evidence availability flags for guided FAQ requirements."""
+    context = run_context if isinstance(run_context, dict) else {}
+    diagnosis = diagnosis_json if isinstance(diagnosis_json, dict) else {}
+    profile = dataset_profile if isinstance(dataset_profile, dict) else {}
+
+    predict = context.get("predict", {}) if isinstance(context.get("predict"), dict) else {}
+    no_pfi = predict.get("no_pfi", {}) if isinstance(predict.get("no_pfi"), dict) else {}
+    pfi = predict.get("pfi", {}) if isinstance(predict.get("pfi"), dict) else {}
+    observations = diagnosis.get("observations", {}) if isinstance(diagnosis.get("observations"), dict) else {}
+
+    def _has_metric(block: Dict[str, Any], key: str) -> bool:
+        return isinstance(block, dict) and block.get(key) is not None
+
+    def _deep_has_keys(obj: Any, keys: List[str]) -> bool:
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                lowered = str(key).lower()
+                if any(target in lowered for target in keys):
+                    return True
+                if _deep_has_keys(value, keys):
+                    return True
+        elif isinstance(obj, list):
+            for item in obj:
+                if _deep_has_keys(item, keys):
+                    return True
+        return False
+
+    return {
+        "report_summary": bool(diagnosis_summary.strip()),
+        "score_components": isinstance(context.get("score"), dict) and any(
+            context.get("score", {}).get(key) is not None for key in ("no_pfi", "pfi")
+        ),
+        "warnings": bool(observations) or bool(context.get("parser_warnings")) or any(
+            block.get("warnings") for block in (no_pfi, pfi) if isinstance(block, dict)
+        ),
+        "metrics": any(
+            _has_metric(block, key)
+            for block in (no_pfi, pfi)
+            for key in ("r2_cv", "r2_test", "rmse_cv", "rmse_test", "mae_cv", "mae_test")
+        ),
+        "outliers": any(
+            _has_metric(block, key) for block in (no_pfi, pfi) for key in ("train_outlier_pct", "test_outlier_pct")
+        ) or _deep_has_keys(diagnosis, ["outlier"]),
+        "feature_importance": any(
+            isinstance(block.get("descriptors"), list) and bool(block.get("descriptors")) for block in (no_pfi, pfi)
+        ) or _deep_has_keys(diagnosis, ["shap", "feature", "descriptor", "importance"]),
+        "transparency": _deep_has_keys(context, ["kfold", "repeat_kfold", "seed", "error_type", "param"]),
+        "reproducibility": _deep_has_keys(context, ["seed", "results_dir", "model", "split"]),
+        "dataset_profile": bool(profile),
+        "original_shape": bool(profile.get("row_count") is not None and profile.get("column_count") is not None),
+        "column_roles": isinstance(profile.get("column_roles"), dict) and bool(profile.get("column_roles")),
+        "target_distribution": isinstance(profile.get("target_summary"), dict) and bool(profile.get("target_summary")),
+        "descriptor_inventory": bool(
+            isinstance(profile.get("column_roles"), dict)
+            and profile.get("column_roles", {}).get("candidate_descriptors")
+        ),
+        "correlations": bool(profile.get("highly_correlated_pairs") or profile.get("top_descriptor_target_correlations")),
+        "smiles_summary": bool(profile.get("smiles_summary")),
+        "descriptor_counts": any(_has_metric(block, "n_descriptors") for block in (no_pfi, pfi)),
+        "split_info": any(_has_metric(block, "n_train") or _has_metric(block, "n_test") for block in (no_pfi, pfi)),
+        "y_distribution": _deep_has_keys(diagnosis, ["y_distribution", "distribution", "target range"]) or bool(profile.get("target_summary")),
+        "extrapolation": _deep_has_keys(diagnosis, ["extrap", "sorted_cv", "sorted cv"]) or _deep_has_keys(context, ["extrap", "sorted_cv"]),
+        "standard_deviation": _deep_has_keys(diagnosis, ["sd", "standard deviation"]) or _deep_has_keys(context, ["avg_sd", "sd"]),
+        "model_screening": _deep_has_keys(context, ["screen", "candidate", "model type", "hyperparameter"]),
+    }
+
+
+def _guided_requirement_manifest(
+    faq_item: Dict[str, Any],
+    availability: Dict[str, bool],
+) -> Dict[str, Any]:
+    """Build requirement and missing-evidence manifest for a guided FAQ item."""
+    requires_all = list(faq_item.get("requires_all") or [])
+    requires_any = list(faq_item.get("requires_any") or [])
+
+    missing_all = [name for name in requires_all if not availability.get(name, False)]
+    any_satisfied = True if not requires_any else any(availability.get(name, False) for name in requires_any)
+    missing_any = [] if any_satisfied else requires_any
+
+    return {
+        "requires_all": requires_all,
+        "requires_any": requires_any,
+        "missing_all": missing_all,
+        "missing_any": missing_any,
+        "requirement_status": "complete" if not missing_all and not missing_any else "partial",
+    }
+
+
+def _guided_context_query(faq_item: Dict[str, Any]) -> str:
+    """Return a retrieval query for explanatory local RAG support."""
+    label = str(faq_item.get("label", "")).strip()
+    tags = faq_item.get("rag_tags", []) if isinstance(faq_item.get("rag_tags"), list) else []
+    return " | ".join([label] + [str(tag) for tag in tags if tag])
+
+
+def answer_guided_faq(
+    faq_id: str,
+    selected_run: str,
+    run_context: Dict[str, Any],
+    diagnosis_json: Optional[Dict[str, Any]],
+    api_key: Optional[str],
+    use_local_rag: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Answer a guided FAQ prompt using run-specific evidence first, then dataset profile, then local RAG."""
+    faq_item = get_faq_item(faq_id)
+    if not faq_item:
+        return {
+            "source": "guided-faq",
+            "content": "The selected guided question is not registered in the UI configuration.",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": [],
+            "metadata": {"interaction_type": "guided_faq", "faq_id": faq_id},
+        }
+
+    if not selected_run or not isinstance(run_context, dict):
+        return {
+            "source": "guided-faq",
+            "content": "Select a run first so the guided question can use run-specific ROBERT evidence.",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": [],
+            "metadata": {"interaction_type": "guided_faq", "faq_id": faq_id},
+        }
+
+    if not api_key:
+        return {
+            "source": "no-api-key",
+            "content": "ROBERT_CHAT_API_KEY is not configured, so guided FAQ questions cannot call OpenAI yet.",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": [],
+            "metadata": {"interaction_type": "guided_faq", "faq_id": faq_id},
+        }
+
+    run_root = get_run_root_from_context_path(selected_run)
+    dataset_profile = load_dataset_profile(str(run_root)) or {}
+    diagnosis_summary = load_diagnosis_summary(str(run_root)) or ""
+
+    availability = _guided_evidence_availability(run_context, diagnosis_json, dataset_profile, diagnosis_summary)
+    requirement_manifest = _guided_requirement_manifest(faq_item, availability)
+
+    rag_payload = _get_local_rag_context(_guided_context_query(faq_item), use_local_rag=use_local_rag)
+    rag_context = rag_payload.get("context", "") if isinstance(rag_payload, dict) else ""
+    rag_results = rag_payload.get("results", []) if isinstance(rag_payload, dict) else []
+
+    system_prompt = (
+        "You are answering a guided ROBERT companion-bot question for a chemist. "
+        "Response hierarchy is mandatory: first use specific ROBERT report values and extracted ROBERT evidence; "
+        "second use dataset_profile.json; third use generic FAQ or RAG background only as explanatory support. "
+        "Generic background must never override or replace run-specific evidence. If required evidence is missing, "
+        "say exactly what is missing. Do not invent descriptor meanings, dataset details, mechanisms, or model behavior. "
+        "Do not claim the model is validated just because R2 is high. Warn when the test set is very small. "
+        "Distinguish statistical importance from chemical causation. Keep the answer chemist-facing and avoid heavy ML jargon."
+    )
+
+    evidence_payload = {
+        "faq_item": {
+            "id": faq_item.get("id"),
+            "label": faq_item.get("label"),
+            "category": faq_item.get("category"),
+            "prompt_template": faq_item.get("prompt_template"),
+            "fallback_behavior": faq_item.get("fallback_behavior"),
+        },
+        "requirements": requirement_manifest,
+        "run_context": run_context,
+        "diagnosis_json": diagnosis_json or {},
+        "diagnosis_summary_md": diagnosis_summary,
+        "dataset_profile": dataset_profile,
+        "background_rag": {
+            "used": bool(rag_context),
+            "context": rag_context,
+            "sources": [
+                {
+                    "source": item.get("source"),
+                    "score": item.get("score"),
+                    "metadata": item.get("metadata", {}),
+                }
+                for item in rag_results[:5]
+                if isinstance(item, dict)
+            ],
+        },
+    }
+
+    user_prompt = (
+        f"Guided question: {faq_item.get('label')}\n\n"
+        "Follow the FAQ-specific instruction below and ground every run-specific claim in the evidence payload.\n\n"
+        f"FAQ-specific instruction:\n{faq_item.get('prompt_template')}\n\n"
+        "If required evidence is missing, explicitly name the missing evidence and then answer only to the extent supported by the available run evidence. "
+        "Use generic background only for explanation, not for run-specific facts.\n\n"
+        "Evidence payload (JSON):\n"
+        f"{json.dumps(evidence_payload, ensure_ascii=True, indent=2)}"
+    )
+
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return {
+            "source": "guided-faq",
+            "content": "OpenAI package not installed in this environment.",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": [],
+            "metadata": {"interaction_type": "guided_faq", "faq_id": faq_id},
+        }
+
+    model_name = load_openai_model("gpt-4o-mini")
+    client = OpenAI(api_key=api_key)
+    artifacts = _select_evidence_artifacts(str(faq_item.get("label", "")), run_context)
+    budget = TokenBudget()
+    budget.add_context(system_prompt)
+    budget.add_context(user_prompt)
+
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            max_tokens=int(os.getenv("ROBERT_OPENAI_MAX_TOKENS", "650")),
+            temperature=0.2,
+        )
+        answer = (response.choices[0].message.content or "").strip()
+        if hasattr(response, "usage"):
+            budget.total_input = getattr(response.usage, "prompt_tokens", 0)
+            budget.total_output = getattr(response.usage, "completion_tokens", 0)
+        else:
+            budget.compute_totals()
+
+        answer = _append_artifact_note(answer, artifacts)
+        manifest = {
+            "interaction_type": "guided_faq",
+            "faq_id": faq_item.get("id"),
+            "faq_label": faq_item.get("label"),
+            "faq_category": faq_item.get("category"),
+            "evidence_manifest": {
+                "requirement_status": requirement_manifest.get("requirement_status"),
+                "missing_all": requirement_manifest.get("missing_all", []),
+                "missing_any": requirement_manifest.get("missing_any", []),
+                "availability": availability,
+                "used_sources": {
+                    "run_context": True,
+                    "diagnosis_json": isinstance(diagnosis_json, dict),
+                    "diagnosis_summary": bool(diagnosis_summary.strip()),
+                    "dataset_profile": bool(dataset_profile),
+                    "local_rag": bool(rag_context),
+                },
+                "rag_sources": evidence_payload["background_rag"]["sources"],
+            },
+        }
+        return {
+            "source": "guided-faq",
+            "content": answer,
+            "tokens_input": budget.total_input,
+            "tokens_output": budget.total_output,
+            "cost_usd": budget.cost_usd,
+            "artifacts": artifacts,
+            "metadata": manifest,
+        }
+    except Exception as exc:
+        logger.warning("Guided FAQ OpenAI request failed: %s", exc)
+        return {
+            "source": "fallback-disabled",
+            "content": f"Guided FAQ request failed: {exc}",
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": artifacts,
+            "metadata": {
+                "interaction_type": "guided_faq",
+                "faq_id": faq_item.get("id"),
+                "faq_label": faq_item.get("label"),
+                "evidence_manifest": {
+                    "requirement_status": requirement_manifest.get("requirement_status"),
+                    "missing_all": requirement_manifest.get("missing_all", []),
+                    "missing_any": requirement_manifest.get("missing_any", []),
+                    "availability": availability,
+                },
+            },
+        }
 
 
 def _best_variant(run_context: Dict[str, Any]) -> str:

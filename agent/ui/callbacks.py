@@ -1,4 +1,4 @@
-from dash import callback, Input, Output, State, html, dcc, no_update
+from dash import callback, Input, Output, State, html, dcc, no_update, ALL, ctx
 import dash_bootstrap_components as dbc
 import logging
 import json
@@ -17,7 +17,8 @@ from utils import (
     get_run_root_from_context_path,
 )
 from config import get_config
-from chat import answer_question, format_chat_message
+from chat import answer_question, answer_guided_faq, format_chat_message
+from guided_faq import get_faq_item
 from parity import check_parity
 
 logger = logging.getLogger(__name__)
@@ -390,6 +391,7 @@ def _render_chat_history(messages: List[Dict[str, str]], run_context: Dict[str, 
             "heuristic": "Heuristic",
             "local-rag": "Local RAG",
             "openai": "OpenAI",
+            "guided-faq": "Guided FAQ",
             "fallback-disabled": "Fallback Disabled",
             "no-api-key": "No API Key",
             "parity-fail": "Parity Block",
@@ -621,51 +623,102 @@ def update_local_rag_toggle(toggle_values: List[str]) -> Tuple[bool, str, str]:
         Output("chat-history-store", "data"),
         Output("chat-messages", "children"),
         Output("chat-input", "value"),
+        Output("guided-faq-status", "children"),
     ],
     [
         Input("send-button", "n_clicks"),
         Input("chat-input", "n_submit"),
+        Input({"type": "guided-faq-starter", "faq_id": ALL}, "n_clicks"),
+        Input({"type": "guided-faq-launch", "category": ALL}, "n_clicks"),
     ],
     [
         State("chat-input", "value"),
         State("chat-history-store", "data"),
+        State("run-selector", "value"),
         State("run-context-store", "data"),
         State("diagnosis-store", "data"),
         State("parity-store", "data"),
         State("local-rag-enabled-store", "data"),
         State("response-style-store", "data"),
         State("chat-mode-store", "data"),
+        State({"type": "guided-faq-select", "category": ALL}, "id"),
+        State({"type": "guided-faq-select", "category": ALL}, "value"),
+    ],
+    running=[
+        (
+            Output("guided-faq-status", "children"),
+            "Sending guided question... Answer pending.",
+            "",
+        ),
     ],
     prevent_initial_call=True,
 )
 def handle_chat_message(
     send_clicks: int,
     n_submit: int,
+    starter_clicks: List[int],
+    guided_launch_clicks: List[int],
     user_message: str,
     history: List[Dict[str, str]],
+    selected_run: str,
     run_context: Dict[str, Any],
     diagnosis_json: Dict[str, Any],
     parity_data: Dict[str, Any],
     local_rag_enabled: bool,
     response_style: str,
     chat_mode: str,
+    guided_select_ids: List[Dict[str, Any]],
+    guided_select_values: List[str],
 ):
     """Handle user chat message with heuristics-first routing."""
-    _ = (send_clicks, n_submit)
-    if not user_message or not user_message.strip():
-        return no_update, no_update, ""
+    _ = (send_clicks, n_submit, starter_clicks, guided_launch_clicks)
+
+    trigger = ctx.triggered_id
+    guided_faq_id = None
+    guided_user_message = None
+
+    if isinstance(trigger, dict) and trigger.get("type") == "guided-faq-starter":
+        guided_faq_id = str(trigger.get("faq_id", "") or "")
+    elif isinstance(trigger, dict) and trigger.get("type") == "guided-faq-launch":
+        selected_map = {}
+        for selector_id, selector_value in zip(guided_select_ids or [], guided_select_values or []):
+            if not isinstance(selector_id, dict):
+                continue
+            selected_map[str(selector_id.get("category", ""))] = selector_value
+        guided_faq_id = selected_map.get(str(trigger.get("category", "") or ""))
+
+    if guided_faq_id:
+        faq_item = get_faq_item(guided_faq_id)
+        guided_user_message = str(faq_item.get("label")) if faq_item else None
+        if not guided_user_message:
+            return no_update, no_update, no_update, "Please select a guided question first."
+
+    effective_user_message = guided_user_message or user_message
+    if not effective_user_message or not str(effective_user_message).strip():
+        return no_update, no_update, "", no_update
 
     if not isinstance(run_context, dict):
         content = "Select a run first so the assistant can use run-specific evidence."
         base_history = history if isinstance(history, list) else []
         updated = base_history + [format_chat_message("assistant", content, source="assistant")]
-        return updated, _render_chat_history(updated, run_context), ""
+        return updated, _render_chat_history(updated, run_context), "", ""
 
     config = get_config()
     api_key = config.get("api_key")
 
     base_history = history if isinstance(history, list) else []
-    updated_history = base_history + [format_chat_message("user", user_message, source="user")]
+    user_metadata = {}
+    if guided_faq_id:
+        faq_item = get_faq_item(guided_faq_id)
+        user_metadata = {
+            "interaction_type": "guided_faq",
+            "faq_id": guided_faq_id,
+            "faq_label": str(faq_item.get("label")) if faq_item else guided_faq_id,
+            "faq_category": str(faq_item.get("category")) if faq_item else "",
+        }
+    updated_history = base_history + [
+        format_chat_message("user", effective_user_message, source="user", metadata=user_metadata)
+    ]
 
     parity_status = "fail"
     if isinstance(parity_data, dict):
@@ -679,19 +732,28 @@ def handle_chat_message(
         updated_history.append(
             format_chat_message("assistant", blocked, source="parity-fail", parity_status=parity_status)
         )
-        return updated_history, _render_chat_history(updated_history, run_context), ""
+        return updated_history, _render_chat_history(updated_history, run_context), "", ""
 
-    routed_message = _contextualize_plot_followup(user_message, base_history)
-
-    result = answer_question(
-        routed_message,
-        run_context,
-        diagnosis_json,
-        api_key,
-        use_local_rag=local_rag_enabled,
-        chat_mode=chat_mode or "HEURISTICS_FIRST",
-        response_style=response_style or "REPORT_ONLY",
-    )
+    if guided_faq_id:
+        result = answer_guided_faq(
+            guided_faq_id,
+            selected_run,
+            run_context,
+            diagnosis_json,
+            api_key,
+            use_local_rag=local_rag_enabled,
+        )
+    else:
+        routed_message = _contextualize_plot_followup(effective_user_message, base_history)
+        result = answer_question(
+            routed_message,
+            run_context,
+            diagnosis_json,
+            api_key,
+            use_local_rag=local_rag_enabled,
+            chat_mode=chat_mode or "HEURISTICS_FIRST",
+            response_style=response_style or "REPORT_ONLY",
+        )
     reply = result.get("content", "No answer available.")
     if parity_status == "incomplete":
         reply = "Parity warning: this run has partial evidence coverage.\n\n" + reply
@@ -706,10 +768,11 @@ def handle_chat_message(
             tokens_output=result.get("tokens_output", 0),
             cost_usd=result.get("cost_usd", 0.0),
             artifacts=result.get("artifacts", []),
+            metadata=result.get("metadata", {}),
         )
     )
 
-    return updated_history, _render_chat_history(updated_history, run_context), ""
+    return updated_history, _render_chat_history(updated_history, run_context), "", ""
 
 
 @callback(
@@ -775,6 +838,11 @@ def _build_chat_export_payload(
                 "tokens_output": msg.get("tokens_output", 0),
                 "cost_usd": msg.get("cost_usd", 0.0),
                 "artifacts": msg.get("artifacts", []),
+                "interaction_type": msg.get("interaction_type", ""),
+                "faq_id": msg.get("faq_id", ""),
+                "faq_label": msg.get("faq_label", ""),
+                "faq_category": msg.get("faq_category", ""),
+                "evidence_manifest": msg.get("evidence_manifest", {}),
             }
         )
 

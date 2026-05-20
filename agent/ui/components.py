@@ -10,6 +10,7 @@ Provides reusable layout components:
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from typing import List, Dict, Any
+from guided_faq import get_starter_items, get_category_options
 
 
 def create_header(run_options: List[Dict[str, str]]) -> dbc.Container:
@@ -175,22 +176,85 @@ def create_chat_panel() -> dbc.Col:
     return dbc.Col(
         [
             html.H5("Chat Assistant", className="mb-3"),
-            html.Div(
-                id="chat-messages",
-                className="chat-messages",
-                style={
-                    "overflow-y": "auto",
-                    "max-height": "70vh",
-                    "padding": "15px",
-                    "border": "1px solid #ddd",
-                    "border-radius": "4px",
-                    "background-color": "#f8f9fa",
-                    "margin-bottom": "15px",
-                },
-                children=html.P(
-                    "Ask a question about why this run got its score.",
-                    className="text-muted",
+            dcc.Loading(
+                id="chat-loading",
+                type="default",
+                children=html.Div(
+                    id="chat-messages",
+                    className="chat-messages",
+                    style={
+                        "overflow-y": "auto",
+                        "max-height": "70vh",
+                        "padding": "15px",
+                        "border": "1px solid #ddd",
+                        "border-radius": "4px",
+                        "background-color": "#f8f9fa",
+                        "margin-bottom": "15px",
+                    },
+                    children=html.P(
+                        "Ask a question about why this run got its score.",
+                        className="text-muted",
+                    ),
                 ),
+            ),
+            html.Div(
+                [
+                    html.H6("Guided Starter Questions", className="mb-2"),
+                    html.Small(
+                        "These launch run-specific questions for the selected ROBERT result.",
+                        className="text-muted d-block mb-2",
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dbc.Button(
+                                    item["label"],
+                                    id={"type": "guided-faq-starter", "faq_id": item["id"]},
+                                    color="light",
+                                    className="w-100 text-start",
+                                    n_clicks=0,
+                                ),
+                                md=6,
+                                className="mb-2",
+                            )
+                            for item in get_starter_items()
+                        ],
+                        className="g-2",
+                    ),
+                    dbc.Accordion(
+                        [
+                            dbc.AccordionItem(
+                                [
+                                    dcc.Dropdown(
+                                        id={"type": "guided-faq-select", "category": group["id"]},
+                                        options=group["options"],
+                                        value=None,
+                                        clearable=True,
+                                        placeholder=f"Choose a question from {group['label']}",
+                                        className="mb-2",
+                                    ),
+                                    dbc.Button(
+                                        "Ask Selected Question",
+                                        id={"type": "guided-faq-launch", "category": group["id"]},
+                                        color="secondary",
+                                        size="sm",
+                                        n_clicks=0,
+                                    ),
+                                ],
+                                title=group["label"],
+                            )
+                            for group in get_category_options(include_starters=False)
+                        ],
+                        start_collapsed=True,
+                        className="mb-3",
+                    ),
+                    html.Small(
+                        id="guided-faq-status",
+                        children="",
+                        className="text-muted d-block mb-2",
+                    ),
+                ],
+                className="mb-3",
             ),
             dbc.InputGroup(
                 [

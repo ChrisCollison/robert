@@ -9,6 +9,7 @@ Updated
 - 2026-05-16 (Readability + FAQ-first execution plan approved)
 - 2026-05-19 (Juanvi chemist-facing interpretation priorities added)
 - 2026-05-20 (Dataset Profile JSON plan added — verified against ROBERT source)
+- 2026-05-20 (Guided FAQ launcher approved for run-specific LLM answers)
 
 ## Approved Near-Term Plan (2026-05-16)
 
@@ -49,6 +50,16 @@ Phase 2C — Experimental Local Knowledge Base (RAG, Phase 1)
 - [x] Update `requirements_ui.txt` with local RAG dependencies if missing (`rank-bm25`, `pymupdf`; keep `python-dotenv` aligned with current usage).
 - [x] Add minimal tests for chunking, loading, index build, and retrieval in existing test structure.
 - [x] Add README section: "Experimental Local Knowledge Base" with local-first privacy guarantees and Phase 1 scope.
+
+Phase 2D — Guided FAQ Launcher (In Progress)
+- [x] Approve guided starter-question design with run evidence -> dataset profile -> RAG background precedence.
+- [ ] Add shared guided FAQ registry with IDs, categories, prompt templates, evidence requirements, and RAG tags.
+- [ ] Add 5-7 always-visible starter questions in the chat panel.
+- [ ] Add grouped launcher UI for deeper questions by report section.
+- [ ] Route guided FAQ selections through a dedicated LLM path that uses selected-run evidence first.
+- [ ] Enforce missing-evidence reporting so guided answers do not collapse into generic FAQ text.
+- [ ] Log selected FAQ ID, category, and evidence manifest in chat history/export payload.
+- [ ] Smoke-test guided questions on one canonical archived run and record pass/fail behavior.
 
 ## Unified Snapshot (2026-05-15)
 
@@ -140,6 +151,12 @@ UI Question Guidance
   - [ ] Can you explain this without machine-learning jargon?
   - [ ] What did ROBERT do with my original CSV?
 - [ ] Add automatic next-question suggestions so each response proposes one or two useful follow-up questions based on the current run context.
+
+Guided FAQ Safeguards
+- [ ] Ensure generic FAQ/RAG background is explanatory only and never overrides run-specific ROBERT evidence.
+- [ ] Block or explicitly downgrade guided answers when required run evidence is missing.
+- [ ] Warn explicitly when test-set size is very small.
+- [ ] Keep descriptor explanations tentative unless a reliable definition source is available.
 
 Downstream Roadmap
 - [ ] Browser-based ROBERT execution from uploaded CSV.
