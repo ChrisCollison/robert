@@ -194,6 +194,14 @@ Group the checklist into categories. One possible grouping is:
 \subsubsection*{Step 2.1 --- Build a file-evidence table}
 Make a table like Table~\ref{tab:evidence} and refine it as the repo is explored.
 
+This should expand into a full ROBERT report extraction checklist so the companion agent
+can surface warnings, caveats, score components, VERIFY results, PREDICT metrics,
+outliers, feature importance, curation details, and report or PDF evidence artifacts.
+Each surfaced item should link back to a concrete evidence source such as
+\texttt{run\_context.json}, \texttt{diagnosis.json}, \texttt{PREDICT\_data.dat},
+\texttt{VERIFY\_data.dat}, \texttt{CURATE\_data.dat}, \texttt{GENERATE\_data.dat},
+model parameter CSV files, or report artifacts.
+
 \begin{longtable}{p{0.29\textwidth} p{0.27\textwidth} p{0.34\textwidth}}
 \caption{Evidence mapping for score interpretation.}\label{tab:evidence}\\
 \toprule
@@ -237,6 +245,18 @@ Some output files may be safer to parse than others. Keep notes on:
 
 \subsection{Phase 3: Collect a Gold-Standard Test Case}
 \textbf{Objective:} Work from a real example, not an abstract one.
+
+Alongside the anchor score question, the first interpretation workflow should also answer:
+
+\begin{quote}
+\textbf{What did ROBERT do with my data?}
+\end{quote}
+
+This means the extracted context should explain how the original CSV becomes the curated
+feature set by tracking the original feature count, removed descriptors, retained
+descriptors, and the final descriptors used by the selected model. This is especially
+important for cases like ``26 data points, 39 features, final model uses 3 descriptors''
+where feature reduction may be expected rather than a sign of failure.
 
 \subsubsection*{Step 3.1 --- Obtain one open dataset}
 Ask for one open or shareable dataset with:
@@ -359,20 +379,52 @@ The LLM should:
 \begin{itemize}
     \item read the structured context,
     \item summarize the likely reasons for the score,
-    \item explain them in chemistry-friendly language,
+    \item explain them in chemistry-friendly, jargon-free language,
     \item suggest one to three next actions.
 \end{itemize}
 
 The LLM should \textbf{not} be responsible for discovering all reasoning from scratch.
+It should translate extracted evidence, not invent reasoning, thresholds, or score logic.
+When machine-learning terms are necessary, they should be explained in plain language.
 
-\subsubsection*{Step 6.2 --- Create a minimal prompt}
+\subsubsection*{Step 6.2 --- Standardize the answer structure}
+Each response should follow a consistent structure:
+
+\begin{enumerate}
+    \item Plain-language summary
+    \item Is the model useful?
+    \item Main benefits
+    \item Caveats and warnings
+    \item What ROBERT did with the data
+    \item Important descriptors or outliers
+    \item Suggested next step
+\end{enumerate}
+
+Each response should also suggest one or two useful follow-up questions based on the
+current run context.
+
+\subsubsection*{Step 6.3 --- Create a minimal prompt}
 A minimal prompt can say:
 
 \begin{quote}
-You are assisting a chemist who ran ROBERT. Use only the structured context provided. Explain why the user obtained this ROBERT score, identify the most likely limiting factors, and recommend up to three concrete next steps. Do not invent file contents or descriptor meanings that are not present in the provided context.
+You are assisting a chemist who ran ROBERT. Use only the structured context provided. Explain why the user obtained this ROBERT score, identify the most likely limiting factors, explain what ROBERT did with the user's data, and recommend up to three concrete next steps. Avoid unexplained machine-learning jargon. Do not invent file contents, descriptor meanings, or score logic that are not present in the provided context.
 \end{quote}
 
-\subsubsection*{Step 6.3 --- Save explanations as text}
+\subsubsection*{Step 6.4 --- Add starter questions in the UI}
+The UI should expose clickable starter questions such as:
+
+\begin{itemize}
+    \item Why did I get this ROBERT score?
+    \item Is this model reliable enough to use?
+    \item What did ROBERT remove from my dataset?
+    \item Which descriptors matter most?
+    \item Are there warnings I should pay attention to?
+    \item What should I try next?
+    \item Can you explain this without machine-learning jargon?
+    \item What did ROBERT do with my original CSV?
+\end{itemize}
+
+\subsubsection*{Step 6.5 --- Save explanations as text}
 Save the model output to:
 
 \begin{verbatim}
@@ -423,6 +475,10 @@ Once the Python prototype works, the next levels can be considered:
     \item \textbf{Local browser wrapper} using Streamlit or similar.
     \item \textbf{Integrated optional ROBERT add-on} in the GitHub repo.
     \item \textbf{Hosted agent with persistent threads and broader context.}
+    \item \textbf{Browser-based ROBERT execution from uploaded CSV} as a separate future workflow.
+    \item \textbf{Educational mode} to teach the user what ROBERT is doing step by step.
+    \item \textbf{Guided report walkthrough} that explains one report section at a time.
+    \item \textbf{Simplified notebooks} where each section begins with a plain-language explanation followed by one simple function call.
 \end{enumerate}
 
 The key is that the reasoning engine should remain the same across these stages.
@@ -457,6 +513,8 @@ The following may become useful during iteration:
 To avoid losing focus, the following should \textbf{not} be part of version 1:
 
 \begin{itemize}
+    \item rebuilding ROBERT or duplicating its machine-learning logic,
+    \item modifying code under \texttt{robert/} without explicit approval,
     \item full chatbot UI,
     \item hosted service,
     \item fine-tuning a custom model,

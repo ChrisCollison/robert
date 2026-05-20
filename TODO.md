@@ -7,6 +7,7 @@ Purpose
 Updated
 - 2026-05-15 (Unified snapshot across validation + UI tracks)
 - 2026-05-16 (Readability + FAQ-first execution plan approved)
+- 2026-05-19 (Juanvi chemist-facing interpretation priorities added)
 
 ## Approved Near-Term Plan (2026-05-16)
 
@@ -75,6 +76,7 @@ Cross-Track Integration Tasks
 - [ ] Define exact artifact contract consumed by UI (`run_context.json`, `diagnosis.json`, `diagnosis_summary.md`).
 - [ ] Add one canonical "known-good" archived run for repeatable UI and parser testing.
 - [ ] Ensure `COMPLETED_TASKS.md` and `PROGRESS.md` reflect the same status after each milestone.
+- [ ] Extend the artifact contract so every surfaced warning, metric, score component, outlier, descriptor, and report callout links back to a concrete evidence source.
 
 Execution Order (Recommended)
 1. Complete Track A regression validation pass.
@@ -94,6 +96,55 @@ Execution Order (Recommended)
 - [ ] Confirm and finalize documentation workflow (reference notes + TODO + completed log + tex sync).
 - [ ] Approve run_context.json schema fields and required evidence map.
 - [ ] Approve parser priorities and safe fallback behavior.
+
+## Juanvi Meeting Priorities (Future Work)
+
+Scope Rule
+- [ ] Keep the companion agent strictly extract-and-explain only.
+- [ ] Do not rebuild ROBERT or duplicate its ML logic.
+- [ ] Keep `robert/` read-only unless explicit approval is given for a separate change.
+
+Full ROBERT Report Extraction Checklist
+- [ ] Surface all warnings, caveats, score components, VERIFY results, PREDICT metrics, outliers, feature importance, curation details, and report/PDF evidence.
+- [ ] Ensure each surfaced item links back to a concrete evidence source such as `run_context.json`, `diagnosis.json`, `PREDICT_data.dat`, `VERIFY_data.dat`, `CURATE_data.dat`, `GENERATE_data.dat`, model parameter CSVs, or report artifacts.
+
+"What Did ROBERT Do With My Data?" Explanation Pathway
+- [ ] Explain how the original CSV becomes the curated feature set.
+- [ ] Track original feature count, removed descriptors, retained descriptors, and final model descriptors.
+- [ ] Make clear that feature reduction may be expected rather than a problem.
+- [ ] Support chemist-facing examples such as "26 data points, 39 features, final model uses 3 descriptors."
+
+Chemist-Facing LLM Profile
+- [ ] Keep responses jargon-free and written for chemists.
+- [ ] When ML terms are necessary, explain them in plain language.
+- [ ] Require the LLM to translate extracted evidence rather than invent reasoning.
+
+Standard Answer Structure
+- [ ] Plain-language summary.
+- [ ] Is the model useful?
+- [ ] Main benefits.
+- [ ] Caveats / warnings.
+- [ ] What ROBERT did with the data.
+- [ ] Important descriptors or outliers.
+- [ ] Suggested next step.
+
+UI Question Guidance
+- [ ] Add clickable starter questions for:
+  - [ ] Why did I get this ROBERT score?
+  - [ ] Is this model reliable enough to use?
+  - [ ] What did ROBERT remove from my dataset?
+  - [ ] Which descriptors matter most?
+  - [ ] Are there warnings I should pay attention to?
+  - [ ] What should I try next?
+  - [ ] Can you explain this without machine-learning jargon?
+  - [ ] What did ROBERT do with my original CSV?
+- [ ] Add automatic next-question suggestions so each response proposes one or two useful follow-up questions based on the current run context.
+
+Downstream Roadmap
+- [ ] Browser-based ROBERT execution from uploaded CSV.
+- [ ] Educational mode / "teach me what ROBERT is doing."
+- [ ] Guided report walkthrough, one section at a time.
+- [ ] Simplified notebooks: each section should have a plain-language description followed by one simple function call.
 
 ## Next Up (Small Chunks)
 - [ ] Add explicit run_context.json schema draft.
@@ -155,12 +206,17 @@ Execution Order (Recommended)
 - [ ] Implement chat callback (receive question, call LLM, return response)
 - [ ] Implement API key loading (environment variable primary, `.env` fallback)
 - [ ] Implement error handling (missing key, API failures)
+- [ ] Add clickable starter questions for the chemist-facing interpretation workflows.
+- [ ] Add automatic follow-up question suggestions based on the current run context.
+- [ ] Enforce the standard answer structure and plain-language chemist-facing tone.
 - [ ] **Test**: Chat works, API key not visible in DevTools network tab, graceful error messages
 
 ### Phase 3: ROBERT Integration (Weeks 3–4)
 - [ ] Create `agent/ui/robert_context.py` (load run_context.json + diagnosis.json)
 - [ ] Enhance chat prompts (inject diagnostic evidence into LLM context)
 - [ ] Implement run selector (choose from archived runs, update left panel)
+- [ ] Add a dedicated "What did ROBERT do with my data?" explanation view from original CSV through curation to final descriptor set.
+- [ ] Surface original feature count, removed descriptors, retained descriptors, and final model descriptors with provenance.
 - [ ] **Test**: Load different runs, verify chat context switches, spot-check LLM responses reference actual metrics
 
 ### Phase 4: Polish & Extensibility (Weeks 4+, Optional)
@@ -169,6 +225,10 @@ Execution Order (Recommended)
 - [ ] Session persistence (store chat history locally)
 - [ ] Multi-run comparison (side-by-side analysis)
 - [ ] Share diagnostic results (generate shareable HTML report)
+- [ ] Guided report walkthrough, one section at a time.
+- [ ] Educational mode / "teach me what ROBERT is doing."
+- [ ] Simplified notebooks so each section starts with a plain-language description followed by one simple function call.
+- [ ] Browser-based ROBERT execution from uploaded CSV as a separate future phase.
 - [ ] [Additional features TBD based on feedback]
 
 ### API Key Security (All Phases)

@@ -86,6 +86,8 @@ Any LLM/OpenAI/API functionality must be optional and disabled by default.
 
 Any API key must be supplied by the user through an environment variable or explicit config option. Never hard-code keys.
 
+If an API key is stored in a `.env` or config file, do not rename that file or its containing folder unless the user explicitly asks for that rename.
+
 ## Notebook-First Development Rules
 
 1. Prefer new implementation work in Jupyter notebooks located in `agent/` whenever practical.

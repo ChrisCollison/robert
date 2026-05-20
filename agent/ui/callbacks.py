@@ -10,8 +10,10 @@ Handles:
 from dash import callback, Input, Output, State, html, dcc, no_update
 import dash_bootstrap_components as dbc
 import logging
+import json
 from pathlib import Path
-from typing import Tuple, List, Dict, Any
+from datetime import datetime
+from typing import Tuple, List, Dict, Any, Optional
 from utils import (
     load_run_context,
     load_diagnosis_summary,
@@ -440,6 +442,8 @@ def update_local_rag_toggle(toggle_values: List[str]) -> Tuple[bool, str, str]:
         State("diagnosis-store", "data"),
         State("parity-store", "data"),
         State("local-rag-enabled-store", "data"),
+        State("response-style-store", "data"),
+        State("chat-mode-store", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -452,6 +456,8 @@ def handle_chat_message(
     diagnosis_json: Dict[str, Any],
     parity_data: Dict[str, Any],
     local_rag_enabled: bool,
+    response_style: str,
+    chat_mode: str,
 ):
     """Handle user chat message with heuristics-first routing."""
     _ = (send_clicks, n_submit)
@@ -492,6 +498,8 @@ def handle_chat_message(
         diagnosis_json,
         api_key,
         use_local_rag=local_rag_enabled,
+        chat_mode=chat_mode or "HEURISTICS_FIRST",
+        response_style=response_style or "REPORT_ONLY",
     )
     reply = result.get("content", "No answer available.")
     if parity_status == "incomplete":
@@ -511,3 +519,363 @@ def handle_chat_message(
     )
 
     return updated_history, _render_chat_history(updated_history, run_context), ""
+
+
+@callback(
+    Output("response-style-store", "data"),
+    Input("response-style-selector", "value"),
+    prevent_initial_call=False,
+)
+def sync_response_style(selected_style: str) -> str:
+    """Sync response style selector to store."""
+    return selected_style or "REPORT_ONLY"
+
+
+@callback(
+    Output("chat-mode-store", "data"),
+    Input("chat-mode-selector", "value"),
+    prevent_initial_call=False,
+)
+def sync_chat_mode(selected_mode: str) -> str:
+    """Sync chat mode selector to store."""
+    return selected_mode or "HEURISTICS_FIRST"
+
+
+def _slugify_filename_fragment(value: str, fallback: str = "run") -> str:
+    """Convert free text to a conservative filename fragment."""
+    text = (value or "").strip()
+    if not text:
+        return fallback
+    cleaned = []
+    for ch in text:
+        if ch.isalnum() or ch in {"-", "_"}:
+            cleaned.append(ch)
+        elif ch in {" ", ".", "/", "\\"}:
+            cleaned.append("-")
+    result = "".join(cleaned).strip("-")
+    return result or fallback
+
+
+def _build_chat_export_payload(
+    history: List[Dict[str, Any]],
+    run_context: Dict[str, Any],
+    response_style: str,
+    chat_mode: str,
+    local_rag_enabled: bool,
+) -> Dict[str, Any]:
+    """Build export payload for local transcript download."""
+    run_name = "unknown-run"
+    results_dir = ""
+    if isinstance(run_context, dict):
+        results_dir = str(run_context.get("results_dir", "") or "")
+        run_name = str(run_context.get("run_name") or Path(results_dir).name or "unknown-run")
+
+    messages = []
+    for msg in history if isinstance(history, list) else []:
+        if not isinstance(msg, dict):
+            continue
+        messages.append(
+            {
+                "role": msg.get("role", "assistant"),
+                "content": msg.get("content", ""),
+                "source": msg.get("source", "assistant"),
+                "parity_status": msg.get("parity_status", ""),
+                "tokens_input": msg.get("tokens_input", 0),
+                "tokens_output": msg.get("tokens_output", 0),
+                "cost_usd": msg.get("cost_usd", 0.0),
+                "artifacts": msg.get("artifacts", []),
+            }
+        )
+
+    return {
+        "exported_at_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "run_name": run_name,
+        "results_dir": results_dir,
+        "chat_mode": chat_mode or "HEURISTICS_FIRST",
+        "response_style": response_style or "REPORT_ONLY",
+        "local_rag_enabled": bool(local_rag_enabled),
+        "message_count": len(messages),
+        "messages": messages,
+    }
+
+
+def _extract_suggested_next_step(text: str) -> Optional[str]:
+    """Extract 'Suggested next step' content from an assistant message when present."""
+    if not text:
+        return None
+    lines = [line.strip() for line in str(text).splitlines()]
+    for idx, line in enumerate(lines):
+        lowered = line.lower()
+        if lowered.startswith("suggested next step"):
+            candidate = line.split(":", 1)[1].strip() if ":" in line else ""
+            if candidate:
+                return candidate
+            if idx + 1 < len(lines) and lines[idx + 1]:
+                return lines[idx + 1]
+    return None
+
+
+def _build_deterministic_chemist_summary(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build a reproducible local summary from chat messages without LLM."""
+    questions: List[str] = []
+    caveats: List[str] = []
+    next_steps: List[str] = []
+
+    caveat_markers = (
+        "warning",
+        "failed",
+        "fail",
+        "unavailable",
+        "no api key",
+        "parity",
+        "limited",
+        "missing",
+    )
+
+    for msg in messages if isinstance(messages, list) else []:
+        if not isinstance(msg, dict):
+            continue
+        role = str(msg.get("role", "")).lower()
+        content = str(msg.get("content", "")).strip()
+        if not content:
+            continue
+
+        if role == "user":
+            if content not in questions:
+                questions.append(content)
+            continue
+
+        # Assistant-side deterministic extraction
+        extracted = _extract_suggested_next_step(content)
+        if extracted and extracted not in next_steps:
+            next_steps.append(extracted)
+
+        for line in [ln.strip() for ln in content.splitlines() if ln.strip()]:
+            lowered = line.lower()
+            if any(marker in lowered for marker in caveat_markers):
+                if line not in caveats:
+                    caveats.append(line)
+
+    return {
+        "mode": "deterministic",
+        "question_count": len(questions),
+        "key_questions": questions[:8],
+        "key_caveats": caveats[:8],
+        "suggested_next_steps": next_steps[:8],
+    }
+
+
+def _generate_llm_chemist_summary(
+    payload: Dict[str, Any],
+    api_key: str,
+    model_name: str,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Generate an optional chemist-friendly summary using LLM, returning (summary, error)."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return None, "OpenAI package not installed in this environment."
+
+    messages = payload.get("messages", [])
+    compact_lines: List[str] = []
+    for msg in messages[:30]:
+        if not isinstance(msg, dict):
+            continue
+        role = str(msg.get("role", "assistant")).upper()
+        content = str(msg.get("content", "")).strip().replace("\n", " ")
+        if len(content) > 500:
+            content = content[:500] + "..."
+        compact_lines.append(f"{role}: {content}")
+
+    deterministic = payload.get("summaries", {}).get("deterministic", {})
+    system_prompt = (
+        "You are preparing an export-only chemist summary for a ROBERT chat transcript. "
+        "Use only the provided transcript content and deterministic notes. "
+        "Do not invent metrics or claims. Be concise and plain-language."
+    )
+    user_prompt = (
+        "Create a short chemist-facing summary with these headings:\n"
+        "1) What was asked\n"
+        "2) Main findings\n"
+        "3) Caveats\n"
+        "4) Suggested next step\n\n"
+        f"Deterministic notes:\n{json.dumps(deterministic, ensure_ascii=True, indent=2)}\n\n"
+        "Transcript excerpts:\n"
+        + "\n".join(compact_lines)
+    )
+
+    try:
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=350,
+        )
+        text = (response.choices[0].message.content or "").strip()
+        if not text:
+            return None, "LLM returned an empty summary."
+        return text, None
+    except Exception as exc:
+        return None, f"LLM summary failed: {exc}"
+
+
+def _to_markdown_transcript(payload: Dict[str, Any]) -> str:
+    """Render export payload as a readable markdown transcript."""
+    summaries = payload.get("summaries", {}) if isinstance(payload, dict) else {}
+    deterministic = summaries.get("deterministic", {}) if isinstance(summaries, dict) else {}
+    llm_summary = summaries.get("llm", {}) if isinstance(summaries, dict) else {}
+
+    lines = [
+        "# ROBERT Chat Export",
+        "",
+        f"- Exported (UTC): {payload.get('exported_at_utc', '')}",
+        f"- Run: {payload.get('run_name', '')}",
+        f"- Results dir: {payload.get('results_dir', '')}",
+        f"- Chat mode: {payload.get('chat_mode', '')}",
+        f"- Response style: {payload.get('response_style', '')}",
+        f"- Local RAG enabled: {payload.get('local_rag_enabled', False)}",
+        f"- Message count: {payload.get('message_count', 0)}",
+        "",
+        "## Chemist Summary (Deterministic)",
+        "",
+        f"- Questions captured: {deterministic.get('question_count', 0)}",
+    ]
+
+    for question in deterministic.get("key_questions", []):
+        lines.append(f"- Question: {question}")
+    for caveat in deterministic.get("key_caveats", []):
+        lines.append(f"- Caveat: {caveat}")
+    for step in deterministic.get("suggested_next_steps", []):
+        lines.append(f"- Suggested next step: {step}")
+
+    lines.extend([
+        "",
+        "## Chemist Summary (LLM Optional)",
+        "",
+        f"- Enabled: {llm_summary.get('enabled', False)}",
+        f"- Generated: {llm_summary.get('generated', False)}",
+        f"- Model: {llm_summary.get('model', '')}",
+    ])
+
+    if llm_summary.get("error"):
+        lines.append(f"- Error: {llm_summary.get('error')}")
+    if llm_summary.get("content"):
+        lines.append("")
+        lines.append(str(llm_summary.get("content", "")).strip())
+
+    lines.extend([
+        "",
+        "## Transcript",
+        "",
+    ])
+
+    for idx, msg in enumerate(payload.get("messages", []), start=1):
+        role = str(msg.get("role", "assistant")).upper()
+        source = msg.get("source", "assistant")
+        parity = msg.get("parity_status", "")
+        lines.append(f"### {idx}. {role}")
+        lines.append(f"- Source: {source}")
+        if parity:
+            lines.append(f"- Parity: {parity}")
+        tokens_in = msg.get("tokens_input", 0)
+        tokens_out = msg.get("tokens_output", 0)
+        cost = msg.get("cost_usd", 0.0)
+        if tokens_in or tokens_out or cost:
+            lines.append(f"- Tokens in/out: {tokens_in}/{tokens_out}")
+            lines.append(f"- Estimated cost: ${float(cost):.4f}")
+        lines.append("")
+        lines.append(str(msg.get("content", "")).strip())
+        lines.append("")
+
+    return "\n".join(lines).strip() + "\n"
+
+
+@callback(
+    [
+        Output("chat-export-download", "data"),
+        Output("chat-export-status", "children"),
+    ],
+    Input("export-chat-button", "n_clicks"),
+    [
+        State("chat-export-format", "value"),
+        State("chat-export-llm-summary", "value"),
+        State("chat-history-store", "data"),
+        State("run-context-store", "data"),
+        State("response-style-store", "data"),
+        State("chat-mode-store", "data"),
+        State("local-rag-enabled-store", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def export_chat_history(
+    n_clicks: int,
+    export_format: str,
+    llm_summary_toggle: List[str],
+    history: List[Dict[str, Any]],
+    run_context: Dict[str, Any],
+    response_style: str,
+    chat_mode: str,
+    local_rag_enabled: bool,
+):
+    """Download local chat transcript as JSON or Markdown."""
+    _ = n_clicks
+    if not isinstance(history, list) or not history:
+        return no_update, "No chat history to export yet."
+
+    payload = _build_chat_export_payload(
+        history=history,
+        run_context=run_context if isinstance(run_context, dict) else {},
+        response_style=response_style or "REPORT_ONLY",
+        chat_mode=chat_mode or "HEURISTICS_FIRST",
+        local_rag_enabled=bool(local_rag_enabled),
+    )
+
+    deterministic_summary = _build_deterministic_chemist_summary(payload.get("messages", []))
+    payload["summaries"] = {
+        "deterministic": deterministic_summary,
+        "llm": {
+            "enabled": False,
+            "generated": False,
+            "model": "",
+            "error": "",
+            "content": "",
+        },
+    }
+
+    status_note = "Export includes deterministic chemist summary."
+    llm_enabled = isinstance(llm_summary_toggle, list) and ("enabled" in llm_summary_toggle)
+    if llm_enabled:
+        config = get_config()
+        api_key = config.get("api_key")
+        model_name = str(config.get("openai_model") or "gpt-4o-mini")
+        payload["summaries"]["llm"]["enabled"] = True
+        payload["summaries"]["llm"]["model"] = model_name
+
+        if not api_key:
+            payload["summaries"]["llm"]["error"] = "ROBERT_CHAT_API_KEY is not configured."
+            status_note = "Deterministic summary exported; optional LLM summary skipped (no API key)."
+        else:
+            summary_text, llm_error = _generate_llm_chemist_summary(payload, api_key, model_name)
+            if llm_error:
+                payload["summaries"]["llm"]["error"] = llm_error
+                status_note = "Deterministic summary exported; optional LLM summary failed."
+            else:
+                payload["summaries"]["llm"]["generated"] = True
+                payload["summaries"]["llm"]["content"] = summary_text or ""
+                status_note = "Export includes deterministic + optional LLM chemist summaries."
+
+    run_fragment = _slugify_filename_fragment(str(payload.get("run_name", "run")), fallback="run")
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+
+    if (export_format or "json").lower() == "md":
+        markdown_text = _to_markdown_transcript(payload)
+        filename = f"robert_chat_{run_fragment}_{ts}.md"
+        return dcc.send_string(markdown_text, filename), f"Exported {payload.get('message_count', 0)} messages as Markdown. {status_note}"
+
+    json_text = json.dumps(payload, indent=2, ensure_ascii=True)
+    filename = f"robert_chat_{run_fragment}_{ts}.json"
+    return dcc.send_string(json_text, filename), f"Exported {payload.get('message_count', 0)} messages as JSON. {status_note}"

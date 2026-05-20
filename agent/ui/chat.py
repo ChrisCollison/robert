@@ -11,11 +11,13 @@ try:
     from .llm_context import pack_evidence, TokenBudget
     from ..chat_prompts import format_system_prompt
     from .rag.retrieve import retrieve, build_context
+    from .config import load_openai_model
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from llm_context import pack_evidence, TokenBudget
     from chat_prompts import format_system_prompt
     from rag.retrieve import retrieve, build_context
+    from config import load_openai_model
 
 logger = logging.getLogger(__name__)
 
@@ -399,7 +401,7 @@ def call_llm_api(
         logger.warning("OpenAI package not installed; fallback remains unavailable")
         return None
 
-    model_name = os.getenv("ROBERT_OPENAI_MODEL", "gpt-4o-mini")
+    model_name = load_openai_model("gpt-4o-mini")
     max_tokens = int(os.getenv("ROBERT_OPENAI_MAX_TOKENS", "350"))
 
     client = OpenAI(api_key=api_key)
@@ -744,11 +746,21 @@ def call_llm_api_with_budget(
     run_context: dict,
     diagnosis_json: dict,
     retrieved_context: str = "",
+    response_style: str = "REPORT_ONLY",
 ) -> Optional[Dict[str, Any]]:
     """
     Call OpenAI API with compact evidence packing and token tracking.
     
-    Returns dict with 'content', 'source', 'tokens_input', 'tokens_output', 'cost_usd'
+    Args:
+        api_key: OpenAI API key
+        user_question: User's question
+        run_context: Run context dict
+        diagnosis_json: Diagnosis dict
+        retrieved_context: Optional local RAG context
+        response_style: "REPORT_ONLY" or "REPORT_WITH_KB"
+    
+    Returns:
+        dict with 'content', 'source', 'tokens_input', 'tokens_output', 'cost_usd'
     """
     try:
         from openai import OpenAI
@@ -768,11 +780,12 @@ def call_llm_api_with_budget(
         budget.add_context(retrieved_context)
     
     # Get system prompt
-    model_name = os.getenv("ROBERT_OPENAI_MODEL", "gpt-4o-mini")
+    model_name = load_openai_model("gpt-4o-mini")
     system_prompt = format_system_prompt(
         evidence=evidence_text,
         question=user_question,
-        use_kb=False,  # KB support added later
+        knowledge_base_text=retrieved_context if response_style == "REPORT_WITH_KB" else None,
+        response_style=response_style,
     )
     
     # Call API
@@ -817,10 +830,69 @@ def answer_question(
     diagnosis_json: Optional[Dict[str, Any]],
     api_key: Optional[str],
     use_local_rag: Optional[bool] = None,
+    chat_mode: str = "HEURISTICS_FIRST",
+    response_style: str = "REPORT_ONLY",
 ) -> Dict[str, str]:
     """
-    Answer with heuristics first. If no match, return a controlled fallback message.
+    Answer with heuristics first (or LLM only if specified). If no match, return a controlled fallback message.
+    
+    Args:
+        user_question: User's question
+        run_context: Run context dict
+        diagnosis_json: Diagnosis dict
+        api_key: OpenAI API key (optional)
+        use_local_rag: Whether to enable local RAG retrieval
+        chat_mode: "HEURISTICS_FIRST" or "LLM_ONLY"
+        response_style: "REPORT_ONLY" or "REPORT_WITH_KB"
+    
+    Returns:
+        Dict with response content and metadata
     """
+    # Handle LLM_ONLY mode
+    if chat_mode == "LLM_ONLY":
+        if not api_key:
+            return {
+                "source": "no-api-key",
+                "content": (
+                    "LLM-only mode is selected, but ROBERT_CHAT_API_KEY is not configured. "
+                    "Set ROBERT_CHAT_API_KEY to enable LLM-only chat, or switch to Heuristics First mode."
+                ),
+                "tokens_input": 0,
+                "tokens_output": 0,
+                "cost_usd": 0.0,
+                "artifacts": [],
+            }
+        # Skip heuristics, go directly to LLM
+        rag_payload = _get_local_rag_context(user_question, use_local_rag=use_local_rag)
+        rag_context = rag_payload.get("context", "") if isinstance(rag_payload, dict) else ""
+        result = call_llm_api_with_budget(
+            api_key,
+            user_question,
+            run_context or {},
+            diagnosis_json or {},
+            retrieved_context=rag_context,
+            response_style=response_style,
+        )
+        artifacts = _select_evidence_artifacts(user_question, run_context)
+        if result:
+            result["artifacts"] = artifacts
+            result["content"] = _append_artifact_note(str(result.get("content", "")), artifacts)
+            _log_query_route("openai")
+            return result
+        _log_query_route("openai_unavailable")
+        return {
+            "source": "fallback-disabled",
+            "content": (
+                "LLM-only mode is selected, but the OpenAI API call failed. "
+                "Please try again, or switch to Heuristics First mode for deterministic answers."
+            ),
+            "tokens_input": 0,
+            "tokens_output": 0,
+            "cost_usd": 0.0,
+            "artifacts": artifacts,
+        }
+    
+    # Heuristics-first mode (original logic)
     response = heuristic_answer(user_question, run_context)
     if response is None and isinstance(diagnosis_json, dict):
         response = heuristic_answer_from_diagnosis(user_question, run_context, diagnosis_json)
@@ -872,6 +944,7 @@ def answer_question(
             run_context or {},
             diagnosis_json or {},
             retrieved_context=rag_context,
+            response_style=response_style,
         )
         if result:
             result["artifacts"] = artifacts

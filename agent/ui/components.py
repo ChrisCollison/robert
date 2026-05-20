@@ -71,6 +71,29 @@ def create_header(run_options: List[Dict[str, str]]) -> dbc.Container:
                                     ),
                                 ]
                             ),
+                            html.Hr(className="my-2"),
+                            html.Label("Response Style:", className="fw-bold small"),
+                            dcc.RadioItems(
+                                id="response-style-selector",
+                                options=[
+                                    {"label": " Report Only (no KB)", "value": "REPORT_ONLY"},
+                                    {"label": " Report with Knowledge Base", "value": "REPORT_WITH_KB"},
+                                ],
+                                value="REPORT_ONLY",
+                                inline=False,
+                                className="small",
+                            ),
+                            html.Label("Chat Mode:", className="fw-bold small mt-2"),
+                            dcc.RadioItems(
+                                id="chat-mode-selector",
+                                options=[
+                                    {"label": " Heuristics First", "value": "HEURISTICS_FIRST"},
+                                    {"label": " LLM Only", "value": "LLM_ONLY"},
+                                ],
+                                value="HEURISTICS_FIRST",
+                                inline=False,
+                                className="small",
+                            ),
                         ],
                         md=6,
                     ),
@@ -173,6 +196,52 @@ def create_chat_panel() -> dbc.Col:
                 children="Select a run to enable chat.",
                 className="text-muted",
             ),
+            html.Hr(className="my-2"),
+            html.Small(
+                "Note: each answer uses your current question plus run evidence. "
+                "Prior chat messages are not sent as context for this turn.",
+                className="text-muted d-block mb-2",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id="chat-export-format",
+                            options=[
+                                {"label": "JSON", "value": "json"},
+                                {"label": "Markdown", "value": "md"},
+                            ],
+                            value="json",
+                            clearable=False,
+                        ),
+                        md=6,
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            "Export Chat",
+                            id="export-chat-button",
+                            color="secondary",
+                            className="w-100",
+                            n_clicks=0,
+                        ),
+                        md=6,
+                    ),
+                ],
+                className="g-2 mt-1",
+            ),
+            dbc.Checklist(
+                id="chat-export-llm-summary",
+                options=[{"label": " Include optional LLM chemist summary in export", "value": "enabled"}],
+                value=[],
+                switch=True,
+                className="mt-2",
+            ),
+            html.Small(
+                id="chat-export-status",
+                children="",
+                className="text-muted d-block mt-2",
+            ),
+            dcc.Download(id="chat-export-download"),
         ],
         md=5,
         className="ps-2",
@@ -215,6 +284,8 @@ def create_main_layout(run_options: List[Dict[str, str]]) -> html.Div:
             dcc.Store(id="parity-store"),
             dcc.Store(id="chat-history-store", data=[]),
             dcc.Store(id="local-rag-enabled-store", data=None),
+            dcc.Store(id="response-style-store", data="REPORT_ONLY"),
+            dcc.Store(id="chat-mode-store", data="HEURISTICS_FIRST"),
         ],
         className="min-vh-100",
     )
