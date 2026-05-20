@@ -1,0 +1,99 @@
+ROBERT v 2.1.0 2026/05/20 05:26:07 
+How to cite: Dalmau, D.; Alegre Requena, J. V. WIREs Comput Mol Sci. 2024, 14, e1733.
+
+Command line used in ROBERT: python -m robert --names "SMILES" --y "MolLogP" --csv_name "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/AQME-ROBERT_interpret_CO2.csv"
+
+
+o  Starting data curation with the CURATE module
+
+o  Database AQME-ROBERT_interpret_CO2.csv loaded successfully, including:
+   - 19 datapoints
+   - 40 accepted descriptors
+   - 1 ignored descriptors
+   - 0 discarded descriptors
+
+o  Analyzing categorical variables
+   A total of 1 categorical variables were converted using the onehot mode in the categorical option
+   Initial descriptors:
+   - code_name
+   Generated descriptors:
+   - C(CF3)3
+   - CF3
+   - CH2-Br
+   - CH2-Cl
+   - CH2-F
+   - CH2-OH
+   - CH2-Phe
+   - CH2-n-Bu
+   - Cycle
+   - Glyc
+   - H
+   - Me
+   - MeMe(cis)
+   - MeMe(trans)
+   - OH
+   - Ph
+   - PhePhe
+   - PhePhe(cis)
+   - tBu
+
+o  Duplication filters activated
+   Excluded datapoints:
+   -  No datapoints were removed
+
+o  Correlation filter activated with these thresholds: thres_x = 0.7
+   Excluded descriptors:
+   - O1CC1_O_d proportion: all the values are the same
+   - Total charge: all the values are the same
+
+   - Hardness removed (R2 = 0.98 with Softness), kept more predictive descriptor
+   - Fermi-level removed (R2 = 0.98 with Electronegativity), kept more predictive descriptor
+   - Nucleophilicity idx removed (R2 = 0.98 with Electronegativity), kept more predictive descriptor
+   - Electrophil. idx removed (R2 = 0.97 with EA), kept more predictive descriptor
+   - EA removed (R2 = 0.96 with Second EA), kept more predictive descriptor
+   - S0-T1 gap removed (R2 = 0.96 with HOMO-LUMO gap), kept more predictive descriptor
+   - Total polariz. alpha removed (R2 = 0.95 with Global SASA), kept more predictive descriptor
+   - LUMO removed (R2 = 0.95 with HOMO-LUMO gap), kept more predictive descriptor
+   - HOMO-LUMO gap removed (R2 = 0.94 with Second EA), kept more predictive descriptor
+   - O1CC1_O_Radical attack removed (R2 = 0.93 with O1CC1_O_Nucleophil.), kept more predictive descriptor
+   - O1CC1_O_SASA removed (R2 = 0.93 with O1CC1_O_Buried volume), kept more predictive descriptor
+   - Softness removed (R2 = 0.91 with Second EA), kept more predictive descriptor
+   - O1CC1_O_p proportion removed (R2 = 0.88 with IP), kept more predictive descriptor
+   - g_barr removed (R2 = 0.88 with O1CC1_O_Buried volume), kept more predictive descriptor
+   - IP removed (R2 = 0.87 with Second IP), kept more predictive descriptor
+   - O1CC1_O_Buried volume removed (R2 = 0.85 with O1CC1_O_Dispersion), kept more predictive descriptor
+   - O1CC1_O_Nucleophil. removed (R2 = 0.84 with Electronegativity), kept more predictive descriptor
+   - O1CC1_O_FOD removed (R2 = 0.83 with Total FOD), kept more predictive descriptor
+   - O1CC1_O_Partial charge removed (R2 = 0.79 with O1CC1_O_s proportion), kept more predictive descriptor
+   - Global SASA removed (R2 = 0.78 with O1CC1_O_Dispersion), kept more predictive descriptor
+   - O1CC1_O_Electrophil. removed (R2 = 0.77 with O1CC1_O_Polariz. alpha), kept more predictive descriptor
+   - Total FOD removed (R2 = 0.73 with Second EA), kept more predictive descriptor
+   - O1CC1_O_Polariz. alpha removed (R2 = 0.72 with O1CC1_O_s proportion), kept more predictive descriptor
+   - Electronegativity removed (R2 = 0.72 with Second EA), kept more predictive descriptor
+   - Total: 24 descriptors removed due to high correlation with other descriptors
+
+o  There are more descriptors than one-third of the data points. A Recursive Feature Elimination with Cross-Validation (RFECV) or permutation feature importance (PFI) using 10x 5_fold_cv will be performed to select the most relevant descriptors for each model
+
+   - GB: 6 descriptors selected (using RFECV)
+   - MVL: 6 descriptors selected (using RFECV)
+   - NN: 6 descriptors selected (using PFI)
+   - RF: 6 descriptors selected (using RFECV)
+
+   o Model GB: 6 descriptors remaining:
+      G of H-bonds H2O, HOMO, MeMe(trans), O1CC1_O_Dispersion, O1CC1_O_s proportion, Second EA
+
+   o Model MVL: 6 descriptors remaining:
+      C(CF3)3, CH2-OH, CH2-n-Bu, O1CC1_O_Dispersion, O1CC1_O_Pyramidaliz. volume, O1CC1_O_s proportion
+
+   o Model NN: 6 descriptors remaining:
+      C(CF3)3, CH2-n-Bu, G solv. in H2O, O1CC1_O_Dispersion, O1CC1_O_s proportion, PhePhe
+
+   o Model RF: 6 descriptors remaining:
+      G solv. in H2O, HOMO, O1CC1_O_Dispersion, O1CC1_O_Pyramidaliz. volume, Second EA, Second IP
+
+o  Model-specific curated databases were stored in /Users/cjcscha/ROBERT/helper_rob/robert/CURATE
+
+x  The Pearson heatmap was not generated because the number of features and the y value (32) is higher than 30.
+
+Time CURATE: 33.65 seconds
+

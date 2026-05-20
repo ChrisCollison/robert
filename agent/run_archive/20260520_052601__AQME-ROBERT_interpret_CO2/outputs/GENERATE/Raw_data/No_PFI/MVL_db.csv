@@ -1,0 +1,20 @@
+C(CF3)3,CH2-OH,CH2-n-Bu,O1CC1_O_Dispersion,O1CC1_O_Pyramidaliz. volume,O1CC1_O_s proportion,SMILES,MolLogP,Set
+False,False,False,12.6015,13.9355,1.744,OC1OC1,-0.665,Training
+False,True,False,13.6696,13.9355,1.7436,OCC1OC1,-0.6225,Training
+False,False,False,12.0643,13.9312,1.745,O1CC1,0.0166,Training
+False,False,False,13.2824,13.9275,1.7419,FCC1OC1,0.3547,Test
+False,False,False,13.2572,13.9221,1.743,CC1OC1,0.4051,Training
+False,False,False,14.1495,13.9264,1.7399,CC(C(OCC1OC1)=O)=C,0.5045,Training
+False,False,False,13.7664,13.9273,1.7387,ClCC1OC1,0.624,Training
+False,False,False,13.9016,13.934,1.7398,BrCC1OC1,0.7801,Training
+False,False,False,14.7647,13.9288,1.743,C[C@H]1O[C@@H]1C,0.7936,Test
+False,False,False,14.2477,13.9202,1.743,C[C@H]1O[C@H]1C,0.7936,Training
+False,False,False,13.6066,13.9161,1.732,FC(C1OC1)(F)F,0.9475,Training
+False,False,False,15.4057,13.9079,1.742,C12OC1CCCC2,1.3278,Training
+False,False,False,15.3738,13.9271,1.74,CC(C)(C)C1OC1,1.4313,Test
+False,False,False,15.0235,13.9275,1.7378,C1(CC2=CC=CC=C2)OC1,1.6279,Training
+False,False,False,14.7434,13.9161,1.737,C1(C2=CC=CC=C2)OC1,1.7579,Training
+False,False,True,14.45,13.9253,1.7407,CCCCCC1OC1,1.9655,Training
+False,False,False,18.6022,13.9338,1.741,C1(C2(C3=CC=CC=C3)OC2)=CC=CC=C1,2.9604,Test
+True,False,False,16.1914,13.9093,1.727,FC(C(C(F)(F)F)(C(F)(F)F)C1OC1)(F)F,3.0585,Training
+False,False,False,17.1309,13.8906,1.738,[C@H]1(C2=CC=CC=C2)O[C@H]1C3=CC=CC=C3,3.4992,Training

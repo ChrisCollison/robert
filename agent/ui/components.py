@@ -49,6 +49,21 @@ def create_header(run_options: List[Dict[str, str]]) -> dbc.Container:
                                 clearable=False,
                                 className="mb-2",
                             ),
+                            dbc.Button(
+                                "Refresh Runs",
+                                id="refresh-runs-button",
+                                color="secondary",
+                                size="sm",
+                                className="mb-2",
+                                n_clicks=0,
+                            ),
+                            html.Br(),
+                            html.Small(
+                                id="run-refresh-status",
+                                className="text-muted",
+                                children="Run list loaded at startup.",
+                            ),
+                            html.Br(),
                             html.Small(
                                 id="api-key-status",
                                 className="text-muted",

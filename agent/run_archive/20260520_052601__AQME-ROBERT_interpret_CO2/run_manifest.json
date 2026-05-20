@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-05-20T05:28:30",
+  "project_root": "/Users/cjcscha/ROBERT/helper_rob/robert",
+  "dataset_csv": "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/AQME-ROBERT_interpret_CO2.csv",
+  "run_robert": true,
+  "robert_command": [
+    "python",
+    "-m",
+    "robert",
+    "--names",
+    "SMILES",
+    "--y",
+    "MolLogP",
+    "--csv_name",
+    "/Users/cjcscha/ROBERT/helper_rob/robert/Databases/Regression/AQME-ROBERT_interpret_CO2.csv"
+  ],
+  "robert_return_code": 0,
+  "robert_version": "2.1.0",
+  "copy_instead_of_move": false,
+  "archived_output_dirs": [
+    "CURATE",
+    "GENERATE",
+    "VERIFY",
+    "PREDICT"
+  ],
+  "expected_output_dirs": [
+    "CURATE",
+    "GENERATE",
+    "VERIFY",
+    "PREDICT"
+  ],
+  "report_pdfs": [
+    "/Users/cjcscha/ROBERT/helper_rob/robert/ROBERT_report.pdf"
+  ]
+}

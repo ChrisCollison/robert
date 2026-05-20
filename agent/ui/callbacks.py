@@ -20,6 +20,7 @@ from utils import (
     load_diagnosis_json,
     build_metrics_rows,
     find_evidence_images,
+    find_run_context_files,
     get_run_root_from_context_path,
 )
 from config import get_config
@@ -27,6 +28,43 @@ from chat import answer_question, format_chat_message
 from parity import check_parity
 
 logger = logging.getLogger(__name__)
+
+
+@callback(
+    [
+        Output("run-selector", "options"),
+        Output("run-selector", "value"),
+        Output("run-refresh-status", "children"),
+    ],
+    Input("refresh-runs-button", "n_clicks"),
+    State("run-selector", "value"),
+    prevent_initial_call=True,
+)
+def refresh_run_selector(n_clicks: int, current_value: str):
+    """Manually repopulate run-selector options from run archive folders."""
+    _ = n_clicks
+
+    config = get_config()
+    run_archive_root = config.get("run_archive_root")
+    runs = find_run_context_files(run_archive_root)
+
+    if not runs:
+        return [], None, "No runs found in archive after refresh."
+
+    options = [
+        {
+            "label": f"{run['dataset_name']} ({run['timestamp']})",
+            "value": run["path"],
+        }
+        for run in runs
+    ]
+    values = {opt["value"] for opt in options}
+
+    selected_value = current_value if current_value in values else options[0]["value"]
+    refreshed_at = datetime.now().strftime("%H:%M:%S")
+    status = f"Run list refreshed at {refreshed_at}. Found {len(options)} run(s)."
+
+    return options, selected_value, status
 
 
 def _contextualize_plot_followup(user_message: str, history: List[Dict[str, Any]]) -> str:

@@ -1,0 +1,2 @@
+model,type,kfold,repeat_kfolds,seed,error_type,y,names,X_descriptors,params,combined_rmse,split
+NN,reg,5,10,0,rmse,MolLogP,SMILES,"['O1CC1_O_Dispersion', 'O1CC1_O_s proportion', 'G solv. in H2O']","{'hidden_layer_1': 10, 'hidden_layer_2': 8, 'max_iter': 416, 'alpha': 0.07004928332102592, 'tol': 5.3881422211062825e-05, 'random_state': 0, 'solver': 'lbfgs'}",0.7828289285595877,even

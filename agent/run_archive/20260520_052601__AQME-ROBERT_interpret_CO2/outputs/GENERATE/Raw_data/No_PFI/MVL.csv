@@ -1,0 +1,2 @@
+model,type,kfold,repeat_kfolds,seed,error_type,y,names,X_descriptors,params,combined_rmse,split
+MVL,reg,5,10,0,rmse,MolLogP,SMILES,"[""C(CF3)3"", ""CH2-OH"", ""CH2-n-Bu"", ""O1CC1_O_Dispersion"", ""O1CC1_O_Pyramidaliz. volume"", ""O1CC1_O_s proportion""]",{},0.7030727907957863,even
