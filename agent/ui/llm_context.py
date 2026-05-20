@@ -97,6 +97,57 @@ def pack_evidence(
     score = run_context.get("score", {}) if isinstance(run_context.get("score"), dict) else {}
     lines.append(f"ROBERT Score (No PFI / PFI): {score.get('no_pfi')} / {score.get('pfi')}")
     lines.append("")
+
+    # Optional dataset profile generated in extract_context notebook
+    dataset_profile = run_context.get("dataset_profile", {}) if isinstance(run_context, dict) else {}
+    if isinstance(dataset_profile, dict) and dataset_profile:
+        rows = dataset_profile.get("row_count")
+        cols = dataset_profile.get("column_count")
+        cand = dataset_profile.get("candidate_descriptor_count")
+        target_summary = dataset_profile.get("target_summary", {})
+        constants = dataset_profile.get("constant_columns", [])
+        corr_pairs = dataset_profile.get("highly_correlated_pairs", [])
+        top_corr = dataset_profile.get("top_descriptor_target_correlations", [])
+
+        lines.append("Dataset profile (input CSV summary):")
+        lines.append(f"  Rows/Columns: {rows} / {cols}")
+        lines.append(f"  Candidate descriptors: {cand}")
+        if isinstance(target_summary, dict):
+            lines.append(f"  Target type: {target_summary.get('type')}")
+            if target_summary.get("type") == "reg":
+                lines.append(
+                    "  Target min/max/mean/std: "
+                    f"{target_summary.get('min')} / {target_summary.get('max')} / "
+                    f"{target_summary.get('mean')} / {target_summary.get('std')}"
+                )
+            elif target_summary.get("type") == "clas":
+                lines.append(f"  Class counts: {target_summary.get('class_counts')}")
+
+        if isinstance(constants, list) and constants:
+            lines.append(f"  Constant descriptors removed: {', '.join(constants[:8])}")
+
+        if isinstance(corr_pairs, list) and corr_pairs:
+            short_pairs = []
+            for pair in corr_pairs[:3]:
+                if not isinstance(pair, dict):
+                    continue
+                removed = pair.get("removed")
+                kept = pair.get("correlated_with")
+                r2 = pair.get("r2")
+                short_pairs.append(f"{removed}->{kept} (R2={r2})")
+            if short_pairs:
+                lines.append(f"  Highly correlated removals: {'; '.join(short_pairs)}")
+
+        if isinstance(top_corr, list) and top_corr:
+            short_top = []
+            for item in top_corr[:3]:
+                if not isinstance(item, dict):
+                    continue
+                short_top.append(f"{item.get('descriptor')} ({item.get('r2_with_target')})")
+            if short_top:
+                lines.append(f"  Top descriptor-target R2: {', '.join(short_top)}")
+
+        lines.append("")
     
     # Metrics summary (pick best variant by test performance)
     best_variant = "pfi"  # Default to PFI if available

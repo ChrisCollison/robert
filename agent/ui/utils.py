@@ -132,6 +132,20 @@ def load_diagnosis_json(run_dir: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def load_dataset_profile(run_dir: str) -> Optional[Dict[str, Any]]:
+    """Load dataset_profile.json from run folder if present."""
+    path = Path(run_dir) / "dataset_profile.json"
+    if not path.exists():
+        return None
+
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading dataset_profile.json: {e}")
+        return None
+
+
 def format_metrics_table(run_context: Dict[str, Any]) -> str:
     """
     Format run_context metrics as an HTML table.

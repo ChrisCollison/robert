@@ -8,6 +8,7 @@ Updated
 - 2026-05-15 (Unified snapshot across validation + UI tracks)
 - 2026-05-16 (Readability + FAQ-first execution plan approved)
 - 2026-05-19 (Juanvi chemist-facing interpretation priorities added)
+- 2026-05-20 (Dataset Profile JSON plan added — verified against ROBERT source)
 
 ## Approved Near-Term Plan (2026-05-16)
 
@@ -148,6 +149,276 @@ Downstream Roadmap
 
 ## Next Up (Small Chunks)
 - [ ] Add explicit run_context.json schema draft.
+
+---
+
+## Dataset Profile JSON for ROBERT Companion Bot
+
+### Overview
+
+**Goal:** Generate a single machine-readable `dataset_profile.json` per run that summarizes the original input CSV.  
+The companion bot uses this to explain dataset-level context without needing the full raw CSV.
+
+**Constraint:** All profiling code lives in `agent/`. No modifications to `robert/` scripts.  
+**Strategy:** Parse `CURATE_data.dat` and `CURATE_options.csv` for measurements already logged by ROBERT;  
+load the original CSV (path stored in `CURATE_options.csv`) to compute the rest.
+
+**Why the original CSV?** ROBERT stores the original CSV path in `CURATE_options.csv` → `csv_name`.
+The archived curated CSVs (`*_CURATE.csv`) preserve all remaining rows and can serve as fallback,
+but they have columns removed and rows sorted — they are NOT identical to the input.
+The profiler should attempt the original CSV path first and fall back to `*_CURATE.csv` if unavailable.
+
+**Where generated:** After CURATE outputs are archived by the normalizer, before or during
+`extract_context.ipynb`. The profiler is a lightweight read-only utility in `agent/robert_helper.py`
+or a standalone `agent/profile_dataset.py`.
+
+**Redundancy note:** Measurements 8, 9, and 10 are already computed and logged by ROBERT CURATE.
+For those, the profiler should parse the existing `CURATE_data.dat` text rather than recompute.
+Only measurements not logged by ROBERT (5, 6, 7, 11, 12) require loading the CSV directly.
+
+**Priority note:** Measurement 12 (SMILES validity/element summary) is currently low priority and deferred.
+Keep the `smiles_summary` field in the schema, but leave it `null` in v1 unless needed for AQME-focused runs.
+
+---
+
+### Proposed `dataset_profile.json` v1 Schema
+
+```json
+{
+  "version": "1.0",
+  "generated_at": "<ISO-8601 UTC>",
+  "source_csv": "Hvapor.csv",
+  "source_csv_path": "<absolute path recorded at CURATE time>",
+  "row_count": 133,
+  "column_count": 7,
+  "column_headings": ["Name", "IF", "g3", "SS", "SGBP", "Hardness", "Hvapor"],
+  "column_roles": {
+    "target": "Hvapor",
+    "names": "Name",
+    "smiles": null,
+    "ignored": ["Name"],
+    "discarded": [],
+    "candidate_descriptors": ["IF", "g3", "SS", "SGBP", "Hardness"]
+  },
+  "candidate_descriptor_count": 5,
+  "missingness": {
+    "IF": 0,
+    "g3": 0,
+    "SS": 0,
+    "SGBP": 0,
+    "Hardness": 0
+  },
+  "target_summary": {
+    "type": "reg",
+    "min": 38.1,
+    "max": 104.2,
+    "mean": 71.3,
+    "median": 70.8,
+    "std": 12.4,
+    "range": 66.1,
+    "class_counts": null
+  },
+  "target_imbalance": {
+    "class_ratio": null,
+    "minority_class_pct": null
+  },
+  "constant_columns": ["IF", "SS"],
+  "near_constant_columns": [],
+  "non_numeric_descriptors": [],
+  "highly_correlated_pairs": [
+    {"removed": "IF", "correlated_with": "SGBP", "r2": 1.0},
+    {"removed": "SS", "correlated_with": "SGBP", "r2": 1.0}
+  ],
+  "top_descriptor_target_correlations": [
+    {"descriptor": "SGBP", "r2_with_target": 0.72},
+    {"descriptor": "Hardness", "r2_with_target": 0.61},
+    {"descriptor": "g3", "r2_with_target": 0.44}
+  ],
+  "smiles_summary": null
+}
+```
+
+---
+
+### Checklist
+
+- [ ] **1. Row count and column count**
+  - Proposed JSON location: `row_count`, `column_count`
+  - Current status: Already available in stable output
+  - Evidence in repo: `CURATE_data.dat` logs "133 datapoints" and "5 accepted descriptors".
+    `load_database()` in `utils.py` lines ~1238-1242 writes these counts to the log.
+  - Existing function/file: `robert/utils.py` → `load_database()` (read-only reference)
+  - Needed action: Parse `CURATE_data.dat` for these log lines in `agent/`. No ROBERT modification needed.
+  - Notes / risks: Log text format is stable. Column count requires summing accepted + ignored + 1 (y).
+
+- [ ] **2. Column headings**
+  - Proposed JSON location: `column_headings`
+  - Current status: Already available in stable output
+  - Evidence in repo: Original CSV path is stored in `CURATE_options.csv` → `csv_name` column.
+    Headings are the first row of that CSV.
+  - Existing function/file: `CURATE_options.csv` (stable artifact)
+  - Needed action: Load original CSV from path in `CURATE_options.csv`; read header row only.
+    Fall back to `*_CURATE.csv` column list if original CSV is missing.
+  - Notes / risks: Absolute path in `CURATE_options.csv` may break if run folder is moved.
+    Resolve relative to run archive or accept null gracefully.
+
+- [ ] **3. Column role classification**
+  - Proposed JSON location: `column_roles`
+  - Current status: Partially available
+  - Evidence in repo: `CURATE_options.csv` stores `y`, `names`, `ignore`.
+    `discard` columns are not saved anywhere — they are dropped before CURATE output is written.
+    SMILES detection is not flagged for standard (non-AQME) CURATE runs.
+  - Existing function/file: `CURATE_options.csv` (stable); `robert/curate.py` → `save_curate()` for what is saved.
+  - Needed action: Read `CURATE_options.csv` for y/names/ignore. Infer candidate descriptors as
+    (all original columns) − y − names − ignored − discarded. Detect SMILES by scanning original CSV
+    for a column whose name starts with "smiles" (case-insensitive), matching AQME convention.
+  - Notes / risks: `discard` is NOT saved. If the original CSV is unavailable, candidate descriptor
+    list must be reconstructed from the curated CSV (already excludes discarded columns).
+
+- [ ] **4. Candidate descriptor count**
+  - Proposed JSON location: `candidate_descriptor_count`
+  - Current status: Already available in stable output
+  - Evidence in repo: `CURATE_data.dat` logs "5 accepted descriptors" (pre-correlation-filter count).
+    `load_database()` in `utils.py` computes `accepted_descs`.
+  - Existing function/file: `robert/utils.py` → `load_database()`
+  - Needed action: Parse `CURATE_data.dat` for the "accepted descriptors" log line.
+  - Notes / risks: This is the pre-filter count, not the post-filter count. Both are useful; post-filter
+    count is derivable from the curated CSV column list.
+
+- [ ] **5. Missingness per column**
+  - Proposed JSON location: `missingness`
+  - Current status: Computed internally but not saved
+  - Evidence in repo: `load_database()` removes columns with <90% data and logs only the aggregate count
+    ("Removed N column(s) with <90% data"). Per-column NaN counts are not logged.
+  - Existing function/file: `robert/utils.py` → `load_database()` (internal only)
+  - Needed action: Load original CSV and compute `df[descriptor_cols].isna().sum()` per column.
+    This is a lightweight pandas operation on the raw CSV; no modeling logic required.
+  - Notes / risks: Must be computed before ROBERT's imputer runs, so use the original CSV, not the
+    curated CSV (imputed values will show zero missingness).
+
+- [ ] **6. Target-property summary**
+  - Proposed JSON location: `target_summary`
+  - Current status: Not currently collected
+  - Evidence in repo: ROBERT does NOT compute or log regression target stats (min, max, mean, std).
+    For classification, `check_clas_problem()` in `utils.py` validates class counts but does not save them.
+    `CURATE_data.dat` has no target summary section.
+  - Existing function/file: None
+  - Needed action: Load original CSV (or `*_CURATE.csv`), select the y column, compute descriptive stats.
+    For classification, compute `value_counts()` for class distribution.
+    This is entirely read-only pandas logic in `agent/`.
+  - Notes / risks: Must determine problem type (reg/clas) from `CURATE_options.csv` or `run_context.json`.
+
+- [ ] **7. Target distribution / imbalance summary**
+  - Proposed JSON location: `target_imbalance`
+  - Current status: Not currently collected
+  - Evidence in repo: For classification, `check_clas_problem()` validates minimum class size (≥5)
+    but does not save class ratios. For regression, no distribution metrics are computed anywhere.
+  - Existing function/file: `robert/utils.py` → `check_clas_problem()` (read-only reference for logic)
+  - Needed action: For classification, compute class counts and minority class percent from target column.
+    For regression, compute a simple histogram or leave as null (histogram is optional in schema).
+  - Notes / risks: Imbalance metrics only meaningful for classification. Keep null for regression.
+
+- [ ] **8. Constant and near-constant descriptor columns**
+  - Proposed JSON location: `constant_columns`, `near_constant_columns`
+  - Current status: Already available in stable output
+  - Evidence in repo: `correlation_filter()` in `utils.py` logs "- COLNAME: all the values are the same"
+    to `CURATE_data.dat` for exact constant columns. Near-constant columns are NOT separately flagged.
+  - Existing function/file: `robert/utils.py` → `correlation_filter()` (log text is stable)
+  - Needed action: Parse `CURATE_data.dat` for "all the values are the same" lines.
+    Near-constant columns can optionally be computed by the agent from the curated CSV
+    (e.g., variance < threshold), but this adds no ROBERT-defined threshold to reference.
+    Leave `near_constant_columns` as empty list for v1.
+  - Notes / risks: Parsing the dat file text is the correct approach here — do not recompute.
+
+- [ ] **9. Non-numeric descriptor columns**
+  - Proposed JSON location: `non_numeric_descriptors`
+  - Current status: Already available in stable output
+  - Evidence in repo: `categorical_transform()` logs detected categorical (string) columns to `CURATE_data.dat`:
+    "Initial descriptors: COL1, COL2 ... Generated descriptors: ..." or
+    "No categorical variables were found".
+  - Existing function/file: `robert/utils.py` → `categorical_transform()` (log text is stable)
+  - Needed action: Parse `CURATE_data.dat` for the categorical variables section.
+  - Notes / risks: After categorical transform, original string columns no longer exist in the curated CSV.
+    Log parsing is the only way to recover the original column names.
+
+- [ ] **10. Highly correlated descriptor summary**
+  - Proposed JSON location: `highly_correlated_pairs`
+  - Current status: Already available in stable output
+  - Evidence in repo: `correlation_filter()` logs "- COLNAME removed (R2 = X.XX with OTHER)" to `CURATE_data.dat`.
+    This is the most useful correlation evidence for the companion bot.
+  - Existing function/file: `robert/utils.py` → `correlation_filter()` (log text is stable)
+  - Needed action: Parse `CURATE_data.dat` for the correlation filter section.
+    Extract removed column name, R² value, and kept column name as structured fields.
+  - Notes / risks: Do NOT recompute the correlation matrix. The log is the canonical source.
+    ROBERT's reproducibility guarantees mean the log is deterministic.
+
+- [ ] **11. Top simple descriptor-target correlations**
+  - Proposed JSON location: `top_descriptor_target_correlations`
+  - Current status: Computed internally but not saved
+  - Evidence in repo: `correlation_filter()` computes `r2_with_y` dict for every descriptor, but uses it
+    only to decide which of a correlated pair to keep. The values are NOT logged for retained descriptors.
+    Only dropped descriptors appear in the log ("R2 = X with y values" for corr_filter_y case, not the default).
+  - Existing function/file: `robert/utils.py` → `correlation_filter()` (internal dict, not logged)
+  - Needed action: Load the `*_CURATE.csv` (post-filter curated database, archived in run)
+    and compute `scipy.stats.linregress(col, y).rvalue**2` for each remaining descriptor column.
+    This exactly replicates ROBERT's own calculation without modifying any ROBERT file.
+  - Notes / risks: Use the curated (post-filter) CSV, not the original. Correlations on the full
+    original descriptor set are less meaningful because ROBERT already filtered them.
+    This is one of the few cases where duplicating a few lines of ROBERT logic is justified.
+
+- [ ] **12. Basic SMILES validity and element summary**
+  - Proposed JSON location: `smiles_summary`
+  - Current status: Not currently collected
+  - Evidence in repo: Standard CURATE does not parse or validate SMILES. SMILES columns appear in the
+    `ignore` list and pass through unchanged. AQME module handles SMILES validation separately.
+    No SMILES validity metrics are saved in any stable CURATE output.
+  - Existing function/file: None for standard runs. AQME module has separate logic.
+  - Needed action: If a SMILES column is detected (column name starts with "smiles", case-insensitive),
+    use RDKit (already a ROBERT dependency) to validate each SMILES and collect unique elements.
+    Set `smiles_summary` to null if no SMILES column is detected.
+  - Notes / risks: RDKit is available in the robert conda environment. Do not attempt element parsing
+    without RDKit — regex-based element extraction from SMILES strings is unreliable.
+    This measurement is low priority for non-AQME runs.
+
+---
+
+### Implementation Plan (Approved)
+
+**Approved constraint:** All code in `agent/`. No modifications to `robert/`.
+
+**Where generated:**
+After the CURATE step completes and its outputs are archived, the profiler is called once.
+Entry point: add a `profile_dataset(run_archive_dir)` function to `agent/robert_helper.py`.
+
+**Execution order:**
+1. Open `CURATE/CURATE_options.csv` → get y, names, ignore, csv_name (original CSV path).
+2. Parse `CURATE/CURATE_data.dat` → extract logged measurements (1, 4, 8, 9, 10).
+3. Load original CSV from path in step 1 (or fall back to `CURATE/*_CURATE.csv`).
+4. Compute remaining measurements (2, 3, 5, 6, 7) from original CSV + options.
+5. Load `CURATE/*_CURATE.csv` → compute measurement 11 (descriptor-target correlations).
+6. If SMILES column detected in step 3 → compute measurement 12 using RDKit.
+7. Write `dataset_profile.json` to the run archive alongside `run_context.json`.
+
+**Proposed file:** `agent/run_archive/<run_id>/dataset_profile.json`
+
+**How the companion bot uses this:**
+- Load alongside `run_context.json` at chat startup.
+- Provides context for questions about the original dataset without needing the raw CSV.
+- Enables comparisons like "you started with 133 rows and 5 descriptors; ROBERT retained 3."
+
+**How to test:**
+Run `profile_dataset()` on the existing `20260515_173258__Hvapor` archive.
+Verify: row_count=133, candidate_descriptor_count=5, constant_columns includes "IF" and "SS",
+highly_correlated_pairs shows IF→SGBP and SS→SGBP with R²=1.0.
+
+**Compatibility / privacy risks:**
+- Only summary statistics and column names are stored. No raw data, no SMILES strings, no identifiers.
+- The original CSV absolute path is stored in `source_csv_path` for provenance only. This is already
+  stored in `CURATE_options.csv`, so no new privacy exposure.
+- If the original CSV is on a shared or network drive, the path string reveals that. Acceptable for
+  a local research tool.
+
+
 - [ ] Add parsing regex/token rules for PREDICT and VERIFY sections.
 - [ ] Add deterministic diagnostics rubric for score limitations.
 
