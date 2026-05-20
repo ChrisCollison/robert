@@ -1,12 +1,3 @@
-"""
-Dash callbacks for ROBERT UI.
-
-Handles:
-- Run selection
-- Document loading and display
-- Chat interface (Phase 2)
-"""
-
 from dash import callback, Input, Output, State, html, dcc, no_update
 import dash_bootstrap_components as dbc
 import logging
@@ -14,6 +5,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from typing import Tuple, List, Dict, Any, Optional
+
 from utils import (
     load_run_context,
     load_diagnosis_summary,
@@ -29,6 +21,161 @@ from chat import answer_question, format_chat_message
 from parity import check_parity
 
 logger = logging.getLogger(__name__)
+
+
+def _build_report_summary_payload(selected_run: str, run_context: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[str]]:
+    """Collect the report and extracted context needed for the summary LLM call."""
+    try:
+        run_root = get_run_root_from_context_path(selected_run)
+    except Exception as exc:
+        return {}, f"Could not resolve run root: {exc}"
+
+    diagnosis_summary = load_diagnosis_summary(str(run_root)) or ""
+    diagnosis_json = load_diagnosis_json(str(run_root)) or {}
+    dataset_profile = load_dataset_profile(str(run_root)) or {}
+
+    context = run_context if isinstance(run_context, dict) else {}
+
+    # Keep the payload compact and focused on report evidence.
+    run_context_excerpt = {
+        "run_path": selected_run,
+        "dataset_csv": context.get("dataset_csv"),
+        "dataset_name": context.get("dataset_name"),
+        "pred_type": context.get("pred_type"),
+        "ml_model": context.get("ml_model"),
+        "score": context.get("score"),
+        "predict": context.get("predict"),
+        "verify": context.get("verify"),
+        "curate": context.get("curate"),
+        "generate": context.get("generate"),
+        "available": context.get("available"),
+        "results_dir": context.get("results_dir"),
+        "dataset_profile": context.get("dataset_profile"),
+    }
+
+    payload = {
+        "run_root": str(run_root),
+        "run_context": run_context_excerpt,
+        "dataset_profile": dataset_profile,
+        "diagnosis_summary_md": diagnosis_summary,
+        "diagnosis_json": diagnosis_json,
+    }
+    return payload, None
+
+
+def _generate_llm_report_summary(
+    payload: Dict[str, Any],
+    api_key: str,
+    model_name: str,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Generate a ROBERT report summary using OpenAI, returning (summary, error)."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return None, "OpenAI package not installed in this environment."
+
+    system_prompt = (
+        "Assume the user is a chemist who understands molecular structure, descriptors, and physical properties, "
+        "but may not know machine-learning jargon. Use only the information provided in the ROBERT report and "
+        "extracted ROBERT output data. Do not invent descriptor meanings, dataset details, mechanisms, or model "
+        "behavior that are not supported by the report. Write a concise but complete summary in 4-7 short "
+        "paragraphs, then end with a single bottom-line sentence. Define PFI, CV, RMSE, MAE, and R² briefly if they appear. "
+        "Be honest about uncertainty and do not say the model is validated just because R² is high."
+    )
+    user_prompt = (
+        "Summarize the entire ROBERT report for the selected run in clear chemistry-facing language using only the "
+        "evidence below. Follow this structure exactly:\n\n"
+        "1. Take-home message\n"
+        "2. What ROBERT built\n"
+        "3. What is encouraging\n"
+        "4. Main limitations\n"
+        "5. Feature interpretation\n"
+        "6. Practical recommendation\n\n"
+        "End with a clear bottom-line sentence.\n\n"
+        "Evidence payload (JSON):\n"
+        f"{json.dumps(payload, ensure_ascii=True, indent=2)}"
+    )
+
+    try:
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=900,
+        )
+        text = (response.choices[0].message.content or "").strip()
+        if not text:
+            return None, "LLM returned an empty summary."
+        return text, None
+    except Exception as exc:
+        return None, f"LLM summary failed: {exc}"
+
+
+@callback(
+    [
+        Output("report-summary-output", "children"),
+        Output("report-summary-output", "style"),
+    ],
+    [Input("report-summary-button", "n_clicks")],
+    [State("run-selector", "value"), State("run-context-store", "data")],
+    prevent_initial_call=True,
+)
+def generate_report_summary(n_clicks, selected_run, run_context):
+    """Generate the chemistry-facing ROBERT report summary."""
+    _ = n_clicks
+
+    if not selected_run:
+        return (
+            dbc.Alert(
+                "Select a run before generating the ROBERT Report Summary.",
+                color="warning",
+            ),
+            {"display": "block"},
+        )
+
+    payload, payload_error = _build_report_summary_payload(selected_run, run_context)
+    if payload_error:
+        return (
+            dbc.Alert(payload_error, color="danger"),
+            {"display": "block"},
+        )
+
+    config = get_config()
+    api_key = config.get("api_key")
+    model_name = str(config.get("openai_model") or "gpt-4o-mini")
+
+    if not api_key:
+        return (
+            dbc.Alert(
+                "ROBERT_CHAT_API_KEY is not configured, so the summary cannot be generated with OpenAI.",
+                color="warning",
+            ),
+            {"display": "block"},
+        )
+
+    summary_text, summary_error = _generate_llm_report_summary(payload, api_key, model_name)
+    if summary_error:
+        return (
+            dbc.Alert(summary_error, color="danger"),
+            {"display": "block"},
+        )
+
+    return (
+        dcc.Markdown(summary_text),
+        {
+            "display": "block",
+            "backgroundColor": "#e9f7ef",
+            "border": "1px solid #b2dfdb",
+            "borderRadius": "6px",
+            "padding": "18px",
+            "fontSize": "1.05rem",
+            "whiteSpace": "pre-wrap",
+        },
+    )
 
 
 @callback(

@@ -36,6 +36,14 @@ def create_header(run_options: List[Dict[str, str]]) -> dbc.Container:
                                 "Understand your ROBERT machine learning results",
                                 className="text-muted mb-3",
                             ),
+                            dbc.Button(
+                                "ROBERT Report Summary",
+                                id="report-summary-button",
+                                color="primary",
+                                size="md",
+                                className="mb-2 mt-2",
+                                n_clicks=0,
+                            ),
                         ],
                         md=6,
                     ),
@@ -277,6 +285,26 @@ def create_main_layout(run_options: List[Dict[str, str]]) -> html.Div:
         [
             # Header
             create_header(run_options),
+
+            # Summary output area (initially hidden/empty)
+            dbc.Container(
+                [
+                    html.Div(
+                        id="report-summary-output",
+                        className="mb-4",
+                        style={
+                            "display": "none",  # Initially hidden until summary is generated
+                            "backgroundColor": "#e9f7ef",
+                            "border": "1px solid #b2dfdb",
+                            "borderRadius": "6px",
+                            "padding": "18px",
+                            "fontSize": "1.05rem",
+                        },
+                        children="",
+                    )
+                ],
+                fluid=True,
+            ),
             
             # Main content (split screen)
             dbc.Container(
