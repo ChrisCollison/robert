@@ -147,3 +147,6 @@ agent/config_local.py
 # LLM response cache (optional feature, user-local)
 agent/.cache/
 agent/cache/
+
+# Local archived ROBERT runs (user-machine artifacts)
+agent/run_archive/
