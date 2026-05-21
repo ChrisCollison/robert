@@ -367,6 +367,18 @@ def _render_artifact_cards(run_context: Dict[str, Any], artifacts: List[Dict[str
     return cards
 
 
+def _normalize_assistant_markdown(content: str) -> str:
+    """Normalize assistant text so markdown renders with cleaner paragraph spacing."""
+    text = str(content or "")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Avoid oversized blank blocks while preserving paragraph boundaries.
+    while "\n\n\n" in text:
+        text = text.replace("\n\n\n", "\n\n")
+
+    return text.strip()
+
+
 def _render_chat_history(messages: List[Dict[str, str]], run_context: Dict[str, Any] = None) -> List[Any]:
     if not messages:
         return [html.P("Ask a question about why this run got its score.", className="text-muted")]
@@ -383,7 +395,12 @@ def _render_chat_history(messages: List[Dict[str, str]], run_context: Dict[str, 
 
         if role == "user":
             blocks.append(
-                dbc.Alert(content, color="light", className="mb-2", style={"border": "1px solid #dcdcdc"})
+                dbc.Alert(
+                    html.Div(str(content or ""), style={"whiteSpace": "pre-wrap"}),
+                    color="light",
+                    className="mb-2",
+                    style={"border": "1px solid #dcdcdc"},
+                )
             )
             continue
 
@@ -418,7 +435,13 @@ def _render_chat_history(messages: List[Dict[str, str]], run_context: Dict[str, 
         alert_children = [
             dbc.Badge(badge_text, color="info", className="me-2"),
             parity_badge,
-            html.Span(content),
+            dcc.Markdown(
+                _normalize_assistant_markdown(content),
+                dangerously_allow_html=False,
+                link_target="_blank",
+                className="mb-0",
+                style={"whiteSpace": "pre-wrap", "lineHeight": "1.5"},
+            ),
         ]
         if token_footer:
             alert_children.append(token_footer)
