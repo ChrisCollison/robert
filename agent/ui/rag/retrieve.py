@@ -1,4 +1,13 @@
-"""Retrieve top chunks from local BM25 index."""
+"""Retrieve top chunks from local BM25 index.
+1. Receive a user question.
+2. Find the local storage folder.
+3. Load the saved knowledge chunks.
+4. Load the saved keyword-search index.
+5. Break the question into search words.
+6. Score every chunk for relevance.
+7. Return the best-matching chunks.
+8. Optionally format those chunks into a context block for the LLM.
+"""
 # This file searches the local knowledge-base index.
 # It finds the text chunks that best match a user question.
 
