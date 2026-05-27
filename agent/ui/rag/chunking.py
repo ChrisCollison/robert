@@ -18,6 +18,7 @@ def chunk_text_words(text: str, chunk_size: int = 900, chunk_overlap: int = 150)
     if not words:
         return []
 
+    # Move forward by (size - overlap) to preserve context across neighboring chunks.
     step = chunk_size - chunk_overlap
     chunks: list[str] = []
     for start in range(0, len(words), step):
@@ -49,6 +50,7 @@ def chunk_document(
     for idx, chunk_text in enumerate(chunks):
         records.append(
             {
+                # Deterministic chunk ids simplify diffs and downstream traceability.
                 "chunk_id": f"{file_sha256[:12]}_{idx}",
                 "source_path": source_path,
                 "source_name": source_name,
